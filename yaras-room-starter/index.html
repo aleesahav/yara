@@ -1044,6 +1044,52 @@
   })();
   </script>
 
+<script>
+/* Fix relative image paths inside binder iframe (so ghouls portraits load everywhere) */
+(function(){
+  function patchBinderFrame(frame){
+    try{
+      const doc = frame.contentDocument;
+      if (!doc) return;
+
+      // If binder.html is in the SAME folder as this room file,
+      // then images should be relative to that folder.
+      // This decides whether we need to prefix "yaras-room-starter/".
+      const needPrefix = location.pathname.includes('/yara/') && !location.pathname.includes('/yaras-room-starter/');
+      const prefix = needPrefix ? 'yaras-room-starter/' : '';
+
+      doc.querySelectorAll('img').forEach(img=>{
+        const src = img.getAttribute('src') || '';
+        if (!src) return;
+        if (/^(https?:|data:|blob:)/i.test(src)) return;
+
+        // normalize "/assets/..." -> "assets/..."
+        const clean = src.startsWith('/') ? src.slice(1) : src;
+
+        // only touch assets paths
+        if (clean.startsWith('assets/')) img.setAttribute('src', prefix + clean);
+      });
+    } catch (err) {
+      // cross-origin or not ready; ignore
+    }
+  }
+
+  function wire(){
+    // Only target your binder iframes (the ones you use for ghouls/self/aii)
+    const frames = document.querySelectorAll('iframe[src^="binder.html"]');
+    frames.forEach(frame=>{
+      if (frame._patchedPaths) return;
+      frame._patchedPaths = true;
+
+      frame.addEventListener('load', ()=> patchBinderFrame(frame));
+    });
+  }
+
+  window.addEventListener('load', wire);
+})();
+</script>
+
+
   <script>
   // ===== Anchored Modal open/close (DIV modals) =====
   (function(){
