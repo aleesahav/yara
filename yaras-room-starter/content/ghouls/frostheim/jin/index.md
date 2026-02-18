@@ -1,4 +1,4 @@
-<img class="portrait" src="yaras-room-starter/assets/ghouls/Jin_Kamurai_Portrait.png" alt="Jin Kamurai portrait">
+<img class="portrait" src="assets/ghouls/Jin_Kamurai_Portrait.png">
 
 <strong>September 9, 2024:</strong> These last few days have been… a whirlwind. It wasn’t even a mission I signed up for, but somehow I was so deeply intertwined with. And I learned more about Jin in these last few days than I have in the two months that I’ve been here—and it’s not even because I snooped, but because I watched him do what he apparently does best.
 
