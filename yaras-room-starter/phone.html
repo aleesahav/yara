@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Yara’s Phone — Story Mode</title>
+<style>
+ :root{
+  --bg:#0b0b0d; --panel:#0f1118; --ink:#e9e9ef; --muted:#a9afbb; --accent:#8f4aff;
+  --border:#222638; --me:#2c7a7b; --them:#202439;
+}
+html, body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  background: transparent;   /* KEY: no black behind phone */
+  color:var(--ink);
+  font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+  .wrap{
+  height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+
+/* PURPLE PHONE SHELL */
+.phone{
+  width:100%;
+  max-width:380px;
+  height:auto;             /* IMPORTANT */
+  aspect-ratio: 9 / 19.5;  /* control shape HERE instead */
+  max-height:780px;
+
+  background:linear-gradient(180deg,#31124f,#1a0b2c);
+  border:1px solid #6f4aa5;
+  border-radius:28px;
+  padding:14px;
+  box-shadow:0 24px 70px rgba(103,58,183,.45), 0 2px 0 rgba(255,255,255,.04) inset;
+
+  display:flex;
+  flex-direction:column;
+}
+.screen{
+  background:var(--panel);
+  border-radius:22px;
+  overflow:hidden;
+
+  flex:1;
+  min-height:0;
+
+  display:grid;
+  grid-template-rows:auto 1fr;
+  position:relative;
+}
+.screen.is-lock{ grid-template-rows:1fr }
+.screen.is-lock .top{ display:none }
+.top{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--border); background:#0e1016 }
+.title{ font-weight:700; font-size:.95rem }
+.back,.lockbtn{ border:1px solid var(--border); background:#151824; border-radius:10px; padding:6px 10px; color:#fff; cursor:pointer }
+.back[hidden], .lockbtn[hidden]{ display:none }
+.grow{ flex:1 }
+.stack{ position:relative; height:100%; overflow:hidden }
+.panel{ position:absolute; inset:0; transform:translateX(100%); opacity:0; pointer-events:none; transition:transform .28s ease, opacity .28s ease; }
+.panel.active{ transform:translateX(0); opacity:1; pointer-events:auto }
+.panel.exit-left{ transform:translateX(-20%); opacity:0 }
+.panel.enter-right{ transform:translateX(100%); opacity:0 }
+
+/* LOCK SCREEN */
+#home{ display:grid; grid-template-rows:1fr auto; place-items:center; position:relative;
+  background:#000 url("https://whisperingtides.carrd.co/assets/images/gallery01/47b7b618.jpg?v=168f9c2d") center/cover no-repeat;
+  filter:brightness(.9); height:100%; }
+.lock-time{ z-index:1; text-align:center; margin-top:60px }
+.lock-time h1{ font-size:3rem; margin:0 }
+.lock-time .date{ opacity:.9 }
+.unlock{ z-index:1; margin-bottom:40px }
+.unlock button{ border:1px solid var(--border); background:#121624; color:var(--ink); padding:10px 16px; border-radius:14px; cursor:pointer }
+
+/* Apps */
+.apps{ display:grid; grid-template-rows:1fr auto; height:100% }
+.grid{ padding:16px; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; align-content:start }
+.icon{ display:grid; gap:6px; justify-items:center; cursor:pointer; text-align:center; }
+.icon .glyph{ width:56px; height:56px; border-radius:14px; background:linear-gradient(180deg,#4b2f7f,#34235c); display:grid; place-items:center; border:1px solid #453a78; font-weight:800 }
+.icon span{ font-size:.8rem; color:var(--muted,#a9afbb); display:block; line-height:1.2; }
+.dock{ display:flex; gap:10px; justify-content:center; padding:10px; background:#0e1016; border-top:1px solid var(--border) }
+
+/* Messages */
+.threads{ display:flex; flex-direction:column; height:100% }
+.thread{ display:grid; grid-template-columns:48px 1fr auto; gap:10px; padding:12px; border-bottom:1px solid #171b26; cursor:pointer }
+.thread:hover{ background:#121522 }
+.avatar{ width:48px; height:48px; border-radius:12px; background:#20263a; display:grid; place-items:center; font-weight:700 }
+.name{ font-weight:700 }
+.snippet,.ts{ color:#a9afbb; font-size:.9rem }
+.badge{ color:#cde4ff; background:#25304a; border-radius:10px; padding:2px 6px; font-size:.8rem; margin-top:4px }
+.chat{ display:flex; flex-direction:column; height:100% }
+.msgs{ flex:1; overflow:auto; padding:14px; background:linear-gradient(180deg,#10121a,#0d0f15) }
+.day{ display:flex; justify-content:center; margin:8px 0 }
+.day span{ font-size:.75rem; color:#b2b6c3; background:#0e111a; border:1px solid #1c2030; padding:4px 8px; border-radius:12px }
+.msg{ max-width:78%; margin:6px 0; padding:10px 12px; border-radius:14px; line-height:1.4; background:var(--them) }
+.from-me{ margin-left:auto; background:var(--me) }
+.sender{ font-weight:700; margin-bottom:2px }
+.meta{ display:flex; gap:8px; color:#c0c4cf; opacity:.8; font-size:.8rem; margin-top:4px }
+.choice-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px }
+.choice{ border:1px solid var(--border); background:#161a28; border-radius:10px; padding:6px 10px; color:#fff; cursor:pointer }
+.typing{ display:flex; align-items:center; gap:8px; color:#a9afbb; font-size:.9rem; padding:0 14px 8px }
+.composer{ display:flex; gap:8px; padding:10px; border-top:1px solid var(--border); background:#0e1016 }
+.composer input{ flex:1; padding:10px 12px; border-radius:12px; border:1px solid #262a36; background:#121522; color:#fff }
+.composer button{ border:1px solid var(--border); background:#151824; border-radius:12px; padding:10px 14px; color:#fff; cursor:pointer }
+
+/* WickHive */
+.feed{ padding:12px; display:flex; flex-direction:column; gap:12px; overflow:auto; height:100% }
+.post{ background:#121522; border:1px solid var(--border); border-radius:14px; padding:12px }
+.post .head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px }
+.post .sub{ color:#cdd3df; font-weight:700 }
+.post .body{ color:#d9ddea }
+.post .meta{ color:#a9afbb; font-size:.85rem; margin-top:8px }
+.post .actions{ display:flex; gap:10px; margin-top:8px }
+.pill{ border:1px solid var(--border); border-radius:999px; padding:4px 10px; background:#171a2b; color:#cfd5e6; font-size:.85rem; cursor:pointer }
+
+/* WickHive expand styles */
+.post .teaser { color:#d9ddea }
+.post .full   { display:none; color:#e3e6f2; margin-top:8px; border-top:1px solid #1a1e2c; padding-top:8px }
+.post.open .full { display:block }
+.post .toggle { cursor:pointer }
+
+/* Photos */
+.gallery{ height:100%; display:grid; grid-template-rows:1fr }
+.grid-photos{
+  padding:12px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
+  grid-auto-rows:100px;
+  gap:8px;
+  place-content:start;
+  overflow:auto;
+}
+.grid-photos img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+.lightbox{ position:absolute; inset:0; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center }
+.lightbox img{ max-width:90%; max-height:90%; border-radius:10px; border:1px solid var(--border) }
+.closex{ position:absolute; top:12px; right:12px; border:1px solid var(--border); background:#141826; color:#fff; border-radius:10px; padding:6px 10px; cursor:pointer }
+
+/* STORY (AO3) */
+.story{ display:grid; grid-template-rows:auto 1fr }
+.story-head{ padding:12px; border-bottom:1px solid var(--border); background:#0e1016 }
+.story-scroll{ overflow:auto; -webkit-overflow-scrolling:touch; padding:16px }
+.story h2{ margin:.2rem 0 0; font-size:1.1rem }
+.tag{ display:inline-block; border:1px solid var(--border); background:#171a2b; color:#d7d9e6; border-radius:999px; padding:4px 10px; font-size:.82rem; margin-right:8px }
+.btn{ display:inline-block; margin-top:14px; border:1px solid #6f4aa5; background:#2b1c45; color:#fff; padding:10px 14px; border-radius:12px; text-decoration:none }
+.btn:hover{ filter:brightness(1.1) }
+
+/* Read-only list cards */
+.section{ display:grid; grid-template-rows:auto 1fr }
+.toolbar{ padding:10px; border-bottom:1px solid var(--border); background:#0e1016; display:flex; gap:8px; align-items:center; }
+.optext{ color:var(--muted); font-size:.9rem }
+.list{ overflow:auto; padding:10px; display:flex; flex-direction:column; gap:10px }
+.item{ border:1px solid var(--border); background:#121522; border-radius:12px; padding:10px }
+.item h4{ margin:0 0 4px; font-size:.95rem }
+.small{ font-size:.82rem; color:var(--muted) }
+.muted{ color:var(--muted) }
+.divider{ height:1px; background:#1a1e2c; margin:6px 0 }
+.label{ display:inline-block; font-size:.78rem; color:#d7d9e6; background:#171a2b; border:1px solid var(--border); border-radius:999px; padding:2px 8px; margin-right:6px }
+
+/* Contact action buttons (no-op) */
+.btnrow{ display:flex; gap:8px; margin-top:8px }
+.ghostbtn{
+  border:1px solid var(--border);
+  background:#171a2b;
+  color:#d7d9e6;
+  padding:6px 10px;
+  border-radius:10px;
+  font-size:.85rem;
+  cursor:default;
+  user-select:none;
+}
+.ghostbtn:active{ transform:translateY(0) }
+.contact-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.contact-name{ margin:0; font-size:.95rem }
+
+/* Journal detail layout */
+.jdetail{ padding:16px 16px 40px 16px; overflow:auto; height:100% }
+.jdetail h2{ margin:0 0 6px; font-size:1.1rem }
+
+/* Clock cards */
+.clockgrid{ padding:12px; display:grid; gap:10px }
+.clockcard{ border:1px solid var(--border); background:#121522; border-radius:12px; padding:12px; display:grid; gap:4px }
+.timebig{ font-size:1.4rem; font-weight:700 }
+
+/* ---- Emojis app (simple gallery like Photos) ---- */
+.emoji-grid{
+  padding:12px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
+  grid-auto-rows:100px;
+  gap:8px;
+  place-content:start;
+  overflow:auto;                     
+  -webkit-overflow-scrolling:touch;  
+}
+.emoji-grid img{
+  width:100%;
+  height:100%;
+  object-fit:contain;             
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0f1320;             
+  cursor:pointer;
+}
+
+/* ---- SCROLL FIX ---- */
+.screen, .stack, .panel, .apps, #messages, #wickhive, #photos, #emojis,
+#threadsWrap, #chatWrap, .gallery { min-height:0; }
+#threadsWrap{ display:flex; flex-direction:column; overflow:hidden; }
+#threads{ flex:1; overflow:auto; -webkit-overflow-scrolling:touch; display:block; }
+#chatWrap{ display:flex; flex-direction:column; }
+#apps .grid{ overflow:auto; -webkit-overflow-scrolling:touch; }
+#wickhive .feed{ overflow:auto; -webkit-overflow-scrolling:touch; }
+.screen, .stack, .panel, .apps, #messages, #wickhive, #photos, #emojis, #private,
+#threadsWrap, #chatWrap, .gallery { min-height:0; }
+
+/* Let the panel handle the scroll */
+#journalDetail{
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Content just needs padding, no fixed height */
+.jdetail{
+  padding:16px 16px 32px;
+  height:auto;              
+}
+
+/* ---- Private (password-gated) gallery ---- */
+#private.panel.gallery { display:grid; grid-template-rows:auto 1fr; }
+.private-gate{
+  padding:16px; display:grid; gap:10px; align-content:start; border-bottom:1px solid var(--border);
+  background:#0e1016;
+}
+.private-gate h3{ margin:0; font-size:1rem }
+.private-gate form{ display:flex; gap:8px; align-items:center; }
+.private-gate input{
+  flex:1; padding:10px 12px; border-radius:10px; border:1px solid #262a36; background:#121522; color:#fff;
+}
+.private-gate button{
+  border:1px solid var(--border); background:#151824; border-radius:10px; padding:10px 14px; color:#fff; cursor:pointer;
+}
+.grid-private{
+  padding:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr));
+  grid-auto-rows:100px; gap:8px; place-content:start; overflow:auto;
+}
+.grid-private img{
+  width:100%; height:100%; object-fit:cover; border-radius:10px; border:1px solid var(--border); cursor:pointer;
+}
+
+/* Private lightbox has a caption */
+.pvt-lightbox{ position:absolute; inset:0; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; }
+.pvt-lightbox figure{ margin:0; max-width:92%; max-height:92%; display:grid; gap:8px; }
+.pvt-lightbox img{ max-width:100%; max-height:calc(92vh - 60px); border-radius:10px; border:1px solid var(--border) }
+.pvt-cap{ color:#cfd5e6; font-size:.9rem; line-height:1.4; text-align:center; }
+.pvt-close{ position:absolute; top:12px; right:12px; border:1px solid var(--border); background:#141826; color:#fff; border-radius:10px; padding:6px 10px; cursor:pointer }
+
+/* scroll containment for the new app */
+#private .grid-private{ overflow:auto; -webkit-overflow-scrolling:touch; }
+
+/* Icon image inside the rounded tile */
+.icon .glyph img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+}
+
+/* ---------- Wickstagram (Instagram-style) ---------- */
+
+/* The Wickstagram panel itself behaves as a flex column and fills the screen */
+#insta.insta{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  min-height:0;
+}
+
+/* Header bar */
+.insta-head{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:#0e1016;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-shrink:0;        /* don’t collapse when space is tight */
+}
+
+.insta-logo{
+  font-weight:700;
+  font-size:1rem;
+}
+
+.insta-tabs{
+  display:flex;
+  gap:6px;
+}
+
+.insta-tab{
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:.8rem;
+  background:#171a2b;
+  color:var(--muted);
+  cursor:pointer;
+}
+
+.insta-tab.active{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+/* Scrollable feed area */
+.insta-feed{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:10px 10px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Post card */
+.insta-post{
+  display:flex;
+  flex-direction:column;
+  background:#121522;
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+/* Header row inside a post */
+.insta-post .ip-head{
+  padding:8px 10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.ip-avatar{
+  width:32px;
+  height:32px;
+  border-radius:999px;
+  overflow:hidden;
+  flex-shrink:0;
+  background:#20263a;
+}
+.ip-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.ip-user{
+  display:grid;
+  gap:2px;
+}
+.ip-name{
+  font-size:.9rem;
+  font-weight:600;
+}
+.ip-handle{
+  font-size:.78rem;
+  color:var(--muted);
+}
+.ip-meta{
+  margin-left:auto;
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+/* Post image */
+.insta-post img{
+  width:100%;
+  display:block;
+}
+
+/* Caption body */
+.insta-post .ip-body{
+  padding:8px 10px 10px;
+  font-size:.88rem;
+  color:var(--ink);      /* make sure it’s readable on the dark card */
+}
+
+.insta-post .ip-caption{
+  display:block;
+  line-height:1.4;
+}
+
+.insta-post .ip-caption strong{
+  font-weight:700;
+}
+
+/* Footer actions */
+.insta-post .ip-actions{
+  padding:0 10px 8px;
+  font-size:.78rem;
+  color:var(--muted);
+  display:flex;
+  gap:10px;
+}
+
+/* --- WICKSTAGRAM FINAL OVERRIDE --- */
+
+/* Panel = header row + scroll row */
+#insta.insta{
+  display:grid;                 /* override flex */
+  grid-template-rows:auto 1fr;  /* header + feed */
+  height:100%;
+  min-height:0;
+}
+
+/* Header stays as-is but make sure it can't grow */
+#insta .insta-head{
+  flex-shrink:0;
+}
+
+/* Feed owns all remaining space + scrolls */
+#insta .insta-feed{
+  height:100%;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:10px 10px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Extra safety so cards don't get weirdly squashed */
+#insta .insta-post{
+  flex:0 0 auto;    /* don't shrink posts */
+}
+
+/* And make sure the image itself can't eat everything */
+#insta .insta-post img{
+  flex:0 0 auto;
+  height:auto;
+}
+
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="phone" role="application" aria-label="Yara's phone">
+    <div class="screen" id="screen">
+      <div class="top">
+        <button class="back" id="backBtn" aria-label="Back" hidden>←</button>
+        <div class="title" id="titleBar">Home</div>
+        <div class="grow"></div>
+        <button class="lockbtn" id="lockBtn" aria-label="Lock" hidden>🔒 Lock</button>
+      </div>
+
+      <div class="stack" id="stack">
+        <!-- HOME / LOCK -->
+        <section id="home" class="panel active" aria-label="Home screen">
+          <div class="lock-time">
+            <h1 id="clock">21:17</h1>
+            <div class="date" id="dateStr">Tue, Sep 16</div>
+          </div>
+          <div class="unlock"><button id="unlockBtn">Unlock</button></div>
+        </section>
+
+        <!-- APPS -->
+        <section id="apps" class="panel apps" aria-label="Apps">
+          <div class="grid" id="appGrid"></div>
+          <div class="dock">
+            <div class="icon" data-app="messages">
+              <div class="glyph"><img src="assets/icons/WickChat.png" alt="Messages"></div>
+              <span>Messages</span>
+            </div>
+            <div class="icon" data-app="story">
+              <div class="glyph"><img src="assets/icons/Ao3.png" alt="AO3"></div>
+              <span>AO3</span>
+            </div>
+            <div class="icon" data-app="calls">
+              <div class="glyph"><img src="assets/icons/Calls.png" alt="Calls"></div>
+              <span>Calls</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- MESSAGES -->
+        <section id="messages" class="panel" aria-label="Messages">
+          <div class="threads" id="threadsWrap">
+            <div class="threads" id="threads"></div>
+          </div>
+          <div class="chat" id="chatWrap" style="display:none">
+            <div class="top" style="position:sticky;top:0;background:#0e1016;z-index:2">
+              <button class="back" id="msgBack">←</button>
+              <div class="title" id="msgTitle">Messages</div>
+            </div>
+            <div class="msgs" id="msgs" tabindex="0" aria-live="polite"></div>
+            <div class="typing" id="typing" hidden>
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div></div>
+            </div>
+            <div class="composer">
+              <input id="composer" placeholder="Write a reply…" autocomplete="off">
+              <button id="sendBtn">Send</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- WICKHIVE -->
+        <section id="wickhive" class="panel" aria-label="WickHive">
+          <div class="feed" id="feed"></div>
+        </section>
+
+        <!-- PHOTOS -->
+        <section id="photos" class="panel gallery" aria-label="Photos">
+          <div class="grid-photos" id="photoGrid"></div>
+          <div class="lightbox" id="lightbox">
+            <img id="lightImg" alt="">
+            <button class="closex" id="closeLight">Close</button>
+          </div>
+        </section>
+
+        <!-- EMOJIS -->
+        <section id="emojis" class="panel gallery" aria-label="Emojis">
+          <div class="emoji-grid" id="emojiGrid"></div>
+          <div class="lightbox" id="emojiLightbox">
+            <img id="emojiLight" alt="">
+            <button class="closex" id="closeEmojiLight">Close</button>
+          </div>
+        </section>
+
+        <!-- PRIVATE (password: Jin) -->
+        <section id="private" class="panel gallery" aria-label="Private Gallery">
+          <div class="private-gate" id="privateGate">
+            <h3>Locked — enter password to view</h3>
+            <form id="privateForm">
+              <input id="privatePwd" type="password" placeholder="Password" autocomplete="off" />
+              <button type="submit">Unlock</button>
+            </form>
+            <div class="small muted">Password Hint: I'm not in love with him...</div>
+          </div>
+          <div class="grid-private" id="privateGrid" hidden></div>
+
+          <div class="pvt-lightbox" id="pvtLightbox" role="dialog" aria-modal="true">
+            <figure>
+              <img id="pvtImg" alt="">
+              <figcaption class="pvt-cap" id="pvtCap"></figcaption>
+            </figure>
+            <button class="pvt-close" id="pvtClose">Close</button>
+          </div>
+        </section>
+
+        <!-- WICKSTAGRAM (Instagram-style) -->
+        <section id="insta" class="panel insta" aria-label="Wickstagram">
+          <div class="insta-head">
+            <div class="insta-logo">Wickstagram</div>
+            <div class="insta-tabs" id="instaTabs"></div>
+          </div>
+          <div class="insta-feed" id="instaFeed"></div>
+        </section>
+
+        <!-- STORY (AO3) -->
+        <section id="story" class="panel story" aria-label="Whispering Tides">
+          <div class="story-head"><div class="title">Whispering Tides</div></div>
+          <div class="story-scroll" id="storyBody"></div>
+        </section>
+
+        <!-- JOURNAL -->
+        <section id="journal" class="panel section" aria-label="Journal">
+          <div class="toolbar"><div class="optext">Private Entries</div></div>
+          <div class="list" id="jList"></div>
+        </section>
+
+        <!-- JOURNAL DETAIL -->
+        <section id="journalDetail" class="panel" aria-label="Journal Entry">
+          <div class="jdetail" id="jDetail"></div>
+        </section>
+
+        <!-- NOTES -->
+        <section id="notes" class="panel section" aria-label="Notes">
+          <div class="toolbar"><div class="optext">Quick notes</div></div>
+          <div class="list" id="nList"></div>
+        </section>
+
+        <!-- CALLS -->
+        <section id="calls" class="panel section" aria-label="Calls">
+          <div class="toolbar"><div class="optext">Recent activity</div></div>
+          <div class="list" id="cList"></div>
+        </section>
+
+        <!-- REMINDERS -->
+        <section id="reminders" class="panel section" aria-label="Reminders">
+          <div class="toolbar"><div class="optext">Pinned tasks</div></div>
+          <div class="list" id="rList"></div>
+        </section>
+
+        <!-- CONTACTS -->
+        <section id="contacts" class="panel section" aria-label="Contacts">
+          <div class="list" id="pList"></div>
+        </section>
+
+        <!-- CLOCK -->
+        <section id="clockapp" class="panel" aria-label="Clock">
+          <div class="clockgrid" id="clockRoot">
+            <div class="clockcard">
+              <div class="small muted">San Francisco</div>
+              <div class="timebig" id="tSF">--:--</div>
+            </div>
+            <div class="clockcard">
+              <div class="small muted">Tokyo</div>
+              <div class="timebig" id="tTYO">--:--</div>
+            </div>
+            <div class="clockcard">
+              <div class="small muted">Scheduled</div>
+              <div id="alarmList"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   STORY DATA — EDIT ME ONLY
+========================================================= */
+const DATA = {
+  ao3Url: "../yaras-room-starter/webtoon/index.html",
+  photos: [
+    'assets/phone/gallery-1.png',
+    'assets/phone/gallery-2.png',
+    'assets/phone/gallery-3.png',
+    'assets/phone/gallery-4.png',
+    'assets/phone/gallery-5.png',
+    'assets/phone/gallery-6.png',
+    'assets/phone/gallery-7.png',
+    'assets/phone/gallery-8.png',
+    'assets/phone/gallery-9.png'
+  ],
+  /* ---- Emojis ---- */
+  emojiBase: 'assets/emojis/',
+  emojis: [
+    'Yara_Peeking',
+    'Yara_Blushing_Embarassed',
+    'Yara_Blushing_Happy',
+    'Yara_Brain_Frozen_',
+    'Yara_Cheer',
+    'Yara_Confused',
+    'Yara_Cry',
+    'Yara_Dead',
+    'Yara_Flirt',
+    'Yara_Flowers',
+    'Yara_Ghast',
+    'Yara_Goodbye',
+    'Yara_Heart_Fingers',
+    'Yara_Hehe',
+    'Yara_Hello',
+    'Yara_Judging',
+    'Yara_LMAO',
+    'Yara_Love',
+    'Yara_Mad',
+    'Yara_No',
+    'Yara_Nose_Bleed',
+    'Yara_OK',
+    'Yara_Pat_Pat',
+    'Yara_Pray',
+    'Yara_What',
+    'Yara_Shocked',
+    'Yara_Sleepy',
+    'Yara_Smug',
+    'Yara_Sorry',
+    'Yara_Speechless',
+    'Yara_Thumbs_Up',
+    'Angelic',
+    'Angry',
+    'Blushing',
+    'Bye',
+    'Crying_Sad',
+    'Devilish',
+    'Disgust_1',
+    'Disgust',
+    'Fuck_U_Hehe',
+    'Gleam',
+    'Hi',
+    'Huh',
+    'Laughing',
+    'Love',
+    'Nervous',
+    'No 1',
+    'Ok',
+    'Shock',
+    'Sleep',
+    'Sorry',
+    'Thank_You',
+    'Thumbs_Up',
+    'Fuck_U_Not_Hehe',
+    'WSnow_leopard',
+    'Stoic'
+  ],
+  /* ---- Private gallery ---- */
+  privateBase: 'assets/private/',
+  privatePhotos: [
+    { src: 'jin_yara_01.png', cap: 'The Emperor and His Moon / by me' },
+    { src: 'jin_yara_02.png',   cap: 'Unspoken Promise / by me' },
+    { src: 'jin_yara_03.png',   cap: 'Commissioned Artist: @moon.a.ra. on Instagram' },
+    { src: 'jin_yara_04.png',   cap: 'Homepage Honey / by me ' },
+    { src: 'jin_yara_05.webp',   cap: 'Commissioned Artist: @lei._chii on Instagram' },
+    { src: 'jin_yara_06.webp',   cap: 'Comissioned Artist: @gyeruu on Instagram' }
+  ],
+
+  /* ---- Wickstagram: only Chisaya + Yara ---- */
+  insta: {
+    profiles: [
+      {
+        id: 'chisaya',
+        name: 'Mitsuko Chisaya',
+        handle: '@DarkwickMC',
+        avatar: 'assets/insta/chi_avatar.png',  // placeholder avatar
+        posts: [
+          {
+            img: 'assets/insta/chi_01.png',
+            time: '2h',
+            likes: '128',
+            caption: '<strong>@DarkwickMC</strong> “Got lost in the Darkwick Forest this afternoon, but luckily Yara-Senpai found me and managed to get me out safely... Isn’t she so cool?”'
+          }
+        ]
+      },
+      {
+        id: 'yara',
+        name: 'Yara Du Verre',
+        handle: '@mayari',
+        avatar: 'assets/insta/yara_avatar.png', // placeholder avatar
+        posts: [
+          {
+            img: 'assets/insta/yara_01.png',
+            time: '5h',
+            likes: '314',
+            caption: '<strong>@mayari</strong> Self-portrait. Made this fuckass Frostheim uniform actually look cool. (OOC: Drawing gift from Yaya!)'
+          },
+          {
+            img: 'assets/insta/yara_02.png',
+            time: '3d',
+            likes: '421',
+            caption: '<strong>@mayari.tides</strong> Ocean’s loud tonight. Whispering’s louder.'
+          }
+        ]
+      }
+    ]
+  },
+
+  contacts: [
+    { name:'Chisaya Mitsuko', phone:'', note:'Honor Student' },
+    { name:'Haru Sagara', phone:'', note:'Call for volunteer work at the Safari' }, 
+    { name:'Jin Kamurai', phone:'', note:'DO NOT PICK UP/DO NOT CALL' },
+    { name:'Jiro Kirasaki', phone:'', note:'Call if Yuri doesn’t pick up' },
+    { name:'Kaito Fuji', phone:'', note:'My lucky charm when thrifting' }, 
+    { name:'Leo Kurosagi', phone:'', note:'Nosy fucking pretty boy. Watch what you say around this one.' }, 
+    { name:'Lucas Errant', phone:'', note:'Demonology Study Buddy' }, 
+    { name:'Romeo Lucci', phone:'', note:'He owes me a drink' },
+    { name:'Rui Mizuki', phone:'', note:'I have a running tab at his bar. Whoops.' },
+    { name:'Sho Haizono', phone:'', note:'He said first one’s on the house' }, 
+    { name:'Tohma Ishibashi', phone:'', note:'Two faced bastard.' },
+    { name:'Yuri Isami', phone:'', note:'Doctor' }
+  ],
+  callLog: [
+    { name:'Jin Kamurai', type:'Missed', ts:'22:41', note:'“.. Tch.“' },
+    { name:'Unknown', type:'Missed', ts:'18:27', note:'(No voicemail left)' },
+    { name:'Tohma', type:'Outgoing', ts:'11:12', note:'Call lasted 2m.' },
+    { name:'Sho Haizono', type:'Incoming', ts:'00:54', note:'Call lasted 5m.' }
+  ],
+  reminders: [
+    { text:'need soil, get after class from campus store', when:'Tomorrow, 13:00' },
+    { text:'Highway to Home has Pozole as a special on Friday, line up on opening', when:'Friday, 8AM' },
+    { text:'Stop by Mortkranken for follow up on labs', when:'Monday, 10AM' },
+    { text:'Apologize to that bastard, maybe', when:'N/A' }
+  ],
+  notes: [
+    'the offing, where the sea meets the sky',
+    'valerian root, vodka, and add some sopor spore to make that shit potent. steep in heat for 4 hours',
+    'johann strauss, le beau danube bleu. boring',
+    'her name means thousand, pure',
+    'there’s a reason why our breathing sounds like the ocean tides',
+    'samyang bludak spicy ramen',
+    'what is that asshole doing at the vaga car lot?',
+    'he i wsear to gid id he cakls me a dtrsy one morr tine i might nust avtually lissll hym'
+  ],
+  journal: [
+    {
+      title:'The Sage’s Ring',
+      when:'September 5, 2024 23:58',
+      src:`content/phone/journal/ring.md`
+    },
+    {
+      title:'Weird Dreams',
+      when:'August 29, 2024 02:14',
+      src:`content/phone/journal/dreams.md`
+    },
+    {
+      title:'I can’t sleep',
+      when:'July 30, 2024 03:33',
+      src:`content/phone/journal/sleep.md`
+    }
+  ],
+  clocks: {
+    cities: ['America/Los_Angeles','Asia/Tokyo'],
+    labels: ['San Francisco','Tokyo'],
+    scheduled: [
+      { time:'05:00', label:'Wake up' },
+      { time:'06:45', label:'Training in 15m — don’t be late' },
+      { time:'21:10', label:'For the love of god, do not do it' }
+    ]
+  }
+};
+/* ======================================================= */
+
+const clockEl = document.getElementById('clock');
+const dateEl  = document.getElementById('dateStr');
+function tick(){ const d=new Date();
+  clockEl.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  dateEl.textContent  = d.toLocaleDateString([], {weekday:'short', month:'short', day:'2-digit'});
+}
+setInterval(tick, 1000); tick();
+
+/* ---------- Private (password: Jin) ---------- */
+const PRIVATE_KEY = 'wt_private_unlocked';
+const privateGate  = document.getElementById('privateGate');
+const privateForm  = document.getElementById('privateForm');
+const privatePwd   = document.getElementById('privatePwd');
+const privateGrid  = document.getElementById('privateGrid');
+const pvtLightbox  = document.getElementById('pvtLightbox');
+const pvtImg       = document.getElementById('pvtImg');
+const pvtCap       = document.getElementById('pvtCap');
+const pvtClose     = document.getElementById('pvtClose');
+
+pvtClose.onclick = () => resetPrivate();  // CLOSE → relock
+pvtLightbox.addEventListener('click', (e)=>{ if(e.target===pvtLightbox) resetPrivate(); }); // CLICK OUT → relock
+function closePrivateLight(){ pvtLightbox.style.display='none'; pvtImg.src=''; pvtCap.textContent=''; }
+
+function renderPrivate(){
+  const unlocked = sessionStorage.getItem(PRIVATE_KEY) === '1';
+  if (unlocked){
+    privateGate.hidden = true;
+    privateGrid.hidden = false;
+    buildPrivateGrid();
+  } else {
+    privateGate.hidden = false;
+    privateGrid.hidden = true;
+    privatePwd.value = '';
+    setTimeout(()=> privatePwd?.focus({ preventScroll: true }), 50);
+  }
+}
+
+privateForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const ok = (privatePwd.value || '').trim().toLowerCase() === 'jin';
+  if (ok){
+    sessionStorage.setItem(PRIVATE_KEY, '1');
+    renderPrivate();
+  } else {
+    // cute little shake
+    privatePwd.style.animation = 'shake .25s';
+    setTimeout(()=>privatePwd.style.animation='', 250);
+  }
+});
+
+// tiny keyframes; attach once
+if (!document.getElementById('shakeKey')){
+  const k = document.createElement('style');
+  k.id = 'shakeKey';
+  k.textContent = `
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  `;
+  document.head.appendChild(k);
+}
+
+function resetPrivate(){
+  sessionStorage.removeItem(PRIVATE_KEY);   // forget unlock
+  closePrivateLight();                      // close if open
+  if (privateGate)  privateGate.hidden = false;
+  if (privateGrid)  privateGrid.hidden = true;
+}
+
+function buildPrivateGrid(){
+  privateGrid.innerHTML = '';
+  const base = DATA.privateBase || '';
+  DATA.privatePhotos.forEach(item=>{
+    const img = document.createElement('img');
+    img.src = base + item.src;
+    img.alt = 'Private photo';
+    img.addEventListener('click', ()=>{
+      pvtImg.src = base + item.src;
+      pvtImg.alt = '';
+      pvtCap.textContent = item.cap || '';
+      pvtLightbox.style.display = 'flex';
+    });
+    privateGrid.appendChild(img);
+  });
+}
+
+/* ---------- screen stack ---------- */
+const titleBar = document.getElementById('titleBar');
+const backBtn  = document.getElementById('backBtn');
+const lockBtn  = document.getElementById('lockBtn');
+const screenEl = document.getElementById('screen');
+const historyStack = ['home'];
+const titles = {
+  home:'Home', apps:'Apps', messages:'Messages', wickhive:'WickHive', photos:'Photos',
+  reminders:'Reminders', contacts:'Contacts', clockapp:'Clock', journalDetail:'Journal',
+  story:'Whispering Tides', journal:'Journal', notes:'Notes', calls:'Calls',
+  emojis:'Emojis', private:'Locked Gallery', insta:'Wickstagram'
+};
+
+function setTopBarState(id){
+  const onLock=(id==='home');
+  screenEl.classList.toggle('is-lock', onLock);
+  backBtn.hidden = (onLock || id==='apps');
+  lockBtn.hidden = onLock;
+  titleBar.textContent = titles[id] || "Yara’s Phone";
+}
+function showPanel(id, push=true){
+  const currentId = historyStack[historyStack.length-1];
+
+  // Re-lock if leaving the Private app
+  if (currentId === 'private' && id !== 'private') {
+    resetPrivate();
+  }
+
+  const current = document.getElementById(currentId);
+  const next = document.getElementById(id);
+  if(!next || currentId===id) return;
+  current.classList.remove('active'); current.classList.add('exit-left');
+  next.classList.add('active'); next.classList.add('enter-right');
+  requestAnimationFrame(()=>next.classList.remove('enter-right'));
+  setTimeout(()=>current.classList.remove('exit-left'), 280);
+  if(push) historyStack.push(id);
+  setTopBarState(id);
+}
+
+function popScreen(){
+  if(historyStack.length<=1) return;
+  const leaving = historyStack.pop();
+  const targetId = historyStack[historyStack.length-1];
+
+  // Back from Private → re-lock
+  if (leaving === 'private') {
+    resetPrivate();
+  }
+
+  const leavingEl = document.getElementById(leaving);
+  const targetEl  = document.getElementById(targetId);
+  targetEl.classList.add('active');
+  leavingEl.classList.remove('active'); leavingEl.classList.add('enter-right');
+  setTimeout(()=>leavingEl.classList.remove('enter-right'), 280);
+  setTopBarState(targetId);
+}
+function goLock(){
+  resetPrivate();  // re-lock the private gallery on phone lock
+  historyStack.length=0; historyStack.push('home');
+  document.querySelectorAll('.panel')
+    .forEach(p=>p.classList.remove('active','enter-right','exit-left'));
+  document.getElementById('home').classList.add('active');
+  setTopBarState('home');
+}
+
+document.getElementById('unlockBtn').onclick=()=>showPanel('apps');
+backBtn.onclick = popScreen; 
+lockBtn.onclick = goLock;
+
+/* ---- ALSO relock Private if user leaves the tab/window ---- */
+function relockIfAway(){
+  const currentId=historyStack[historyStack.length-1];
+  if(currentId==='private') resetPrivate();
+}
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) relockIfAway(); });
+window.addEventListener('blur', relockIfAway);
+
+/* ---------- app grid ---------- */
+const APPS = [
+  { id:'messages',  label:'WickChat',    glyph:'WKC' },
+  { id:'wickhive',  label:'WickHive',    glyph:'WKH' },
+  { id:'photos',    label:'Photos',      glyph:'PHO' },
+  { id:'emojis',    label:'Emojis',      glyph:'EMJ' },
+  { id:'private',   label:'Locked Gallery', glyph:'PRV' },
+  { id:'insta',     label:'Wickstagram', glyph:'WG' },
+  { id:'story',     label:'Whispering Tides', glyph:'AO3' },
+  { id:'journal',   label:'Journal',     glyph:'JRL' },
+  { id:'notes',     label:'Notes',       glyph:'NTS' },
+  { id:'calls',     label:'Calls',       glyph:'CAL' },
+  { id:'reminders', label:'Reminders',   glyph:'RMD' },
+  { id:'contacts',  label:'Contacts',    glyph:'CTC' },
+  { id:'clockapp',  label:'Clock',       glyph:'CLK' }
+];
+
+const appGrid = document.getElementById('appGrid');
+APPS.forEach(a => {
+  const div = document.createElement('div');
+  div.className = 'icon';
+  div.dataset.app = a.id;
+
+  // Custom mapping to your actual filenames
+  const iconMap = {
+    messages: 'WickChat.png',
+    wickhive: 'WickHive.png',
+    photos: 'Photos.png',
+    emojis: 'Emotes.png',
+    private: 'Private_Gallery.png',
+    insta: 'Wickstagram.png',
+    story: 'Ao3.png',
+    journal: 'Journal.png',
+    notes: 'Notes.png',
+    calls: 'Calls.png',
+    reminders: 'Reminders.png',
+    contacts: 'Contacts.png',
+    clockapp: 'Clock.png'
+  };
+
+  const iconFile = iconMap[a.id] || `${a.id}.png`;
+
+  div.innerHTML = `
+    <div class="glyph">
+      <img src="assets/icons/${iconFile}" alt="${a.label}">
+    </div>
+    <span>${a.label}</span>
+  `;
+  div.onclick = () => openApp(a.id);
+  appGrid.appendChild(div);
+});
+
+
+/* ---------- AO3 STORY ---------- */
+function renderStory(){
+  const el=document.getElementById('storyBody');
+  el.innerHTML = `
+    <h2>Arc I - Evenfall</h2>
+    <p>In a world where anomalies hide in plain sight, Yara Du Verre was born hearing a voice — whispering from nowhere, humming beneath her skin, murmuring in the tides, looping through her dreams, and beckoning from the dark. She gave it a name and carved it a place in her soul. Now, she swears she'll follow the Whispering — even into the ocean’s depths, where the light dies — just to learn what it wants and why it chose her to haunt.</p>
+    <div class="tag">Urban fantasy</div>
+    <div class="tag">Slow-burn</div>
+    <div class="tag">Found family</div>
+    <p><a class="btn" href="${DATA.ao3Url}" target="_blank" rel="noopener">Read on AO3 →</a></p>
+    <p class="small"><em>(OOC: By clicking, you'll open a new tab to read Yara's story!)</em></p>
+  `;
+}
+
+/* ---------- Messages (interactive) ---------- */
+const PHONE = {
+  threads: [
+    { id:"jin", name:"Jin Kamurai", avatar:"JK", unread:2, lastTs:"22:41", messages:[
+      { t:"day", text:"Today" },
+      { t:"them", s:"Jin", text:"…Tch. Sloppy work today, as usual.", ts:"22:12" },
+      { t:"me", s:"Yara", text:"I still got the job done.", ts:"22:13" },
+      { t:"them", s:"Jin", text:"Speaking of jobs.", ts:"22:14"},
+      { t:"them", s:"Jin", text:"My room. Ten minutes.", ts:"22:14",
+        choices:[
+          { label:"Argue", next:[ { t:"me", s:"Yara", text:"Say please.", ts:"22:15" }, { t:"them", s:"Jin", text:"No.", ts:"22:16" } ]},
+          { label:"Go", next:[ { t:"me", s:"Yara", text:"On my way.", ts:"22:15" }, { t:"them", s:"Jin", text:"Good dog.", ts:"22:16" } ]}
+        ]
+      }
+    ]},
+    { id:"tohma", name:"Tohma Ishibashi", avatar:"TI", unread:0, lastTs:"18:03", messages:[
+      { t:"day", text:"Yesterday" },
+      { t:"them", s:"Tohma", text:"Miss Du Verre, would you kindly ensure your next experiment does't blow a hole in the wall?", ts:"18:02" },
+      { t:"me", s:"Yara", text:"Heh. No promises.", ts:"18:03" }
+    ]},
+    { id:"Jiro", name:"Jiro Kirisaki", avatar:"JK", unread:0, lastTs:"10:42", messages:[
+      { t:"day", text:"Last week" },
+      { t:"them", s:"Jiro", text:"Please arrive at Mortkranken for your follow up health check on Monday morning at 10AM.", ts:"10:39" },
+      { t:"me", s:"Yara", text:"Follow up, for what?", ts:"10:40" },
+      { t:"them", s:"Jiro", text:"Your bloodwork came back a bit abnormal, so Yuri would like to examine you himself. You and him can talk more about your results at your appointment.", ts:"10:41"},
+      { t:"me", s:"Yara", text:"Wait. What? Abnormal? What do you mean?", ts:"10:41" },
+      { t:"me", s:"Yara", text:"Hey! Don't leave me on read...", ts:"10:45" },
+      { t:"me", s:"Yara", text:"Jiro, is something wrong with me?", ts:"10:50" },
+    ]},
+    { id:"kaito", name:"Kaito Fuji", avatar:"KF", unread:1, lastTs:"16:27", messages:[
+      { t:"day", text:"This week" },
+      { t:"them", s:"Kaito", text:"Yo, free this weekend to hit up Shimokita for thrifting? I know a spot that sells  500-yen jackets.", ts:"16:22" },
+      { t:"me", s:"Yara", text:"Hell yeah. Maybe we ask that Chisaya to come?", ts:"16:24" },
+      { t:"them", s:"Kaito", text:"Ahhhhhhhhh", ts:"16:26" },
+      { t:"them", s:"Kaito", text:"Senpai... What do you know?", ts:"16:27",
+        choices:[
+          { label:"A Lot", next:[ { t:"me", s:"Yara", text:"You just make it too obvious, dude.", ts:"16:27" } ]},
+          { label:"Hmm", next:[ { t:"me", s:"Yara", text:"Just a wild guess. Hahahahah.", ts:"16:27" } ]}
+        ]
+      }
+    ]},
+    { id:"lucas", name:"Lucas Errant", avatar:"LE", unread:0, lastTs:"19:05", messages:[
+      { t:"day", text:"Today" },
+      { t:"them", s:"Lucas", text:"Senpai, Kaito and I are going to study in the common room tonight, are you free?", ts:"13:02" },
+      { t:"me", s:"Yara", text:"If coffee is involved, maybe.", ts:"13:04" },
+      { t:"them", s:"Lucas", text:"And biscuits, sure.", ts:"13:05" },
+      { t:"me", s:"Yara", text:"Sure. I'll stop by", ts:"13:04" }
+    ]},
+    { id:"chisaya", name:"Chisaya Mitsuko", avatar:"CM", unread:0, lastTs:"14:18", messages:[
+      { t:"day", text:"Today" },
+      { t:"them", s:"Chisaya", text:"Senpai, do you need help with anything? I’m free after 6.", ts:"14:15" },
+      { t:"me", s:"Yara", text:"I’m okay, Chi.", ts:"14:17",
+        choices:[
+          { label:"Actually… yes", next:[ { t:"me", s:"Yara", text:"Wait—could you proof a note for me later?", ts:"14:18" }, { t:"them", s:"Chisaya", text:"Of course.", ts:"14:18" } ]},
+          { label:"Thank you.", next:[ { t:"them", s:"Chisaya", text:"Okay! I’ll be around.", ts:"14:18" } ]}
+        ]
+      }
+    ]},
+    { id:"sho", name:"Sho Haizono", avatar:"SH", unread:1, lastTs:"20:11", messages:[
+      { t:"day", text:"Yesterday" },
+      { t:"them", s:"Sho", text:"Chef’s special tonight. Need a brave palate + pretty company.", ts:"12:07" },
+      { t:"me", s:"Yara", text:"Flattery is a seasoning. What’s the dish?", ts:"12:09" },
+      { t:"them", s:"Sho", text:"Come find out for yourself, Senpai. Or are you too scared?", ts:"12:11",
+        choices:[
+          { label:"I'll stop by", next:[ { t:"me", s:"Yara", text:"If you poison me, I’m haunting you.", ts:"20:11" } ]},
+          { label:"Flirt", next:[ { t:"me", s:"Yara", text:"Scared? Why would I be scared when I've got you to protect me? Hehehe.", ts:"20:11" } ]}
+        ]
+      }
+    ]},
+    { id:"leo", name:"Leo Kurosagi", avatar:"LK", unread:1, lastTs:"13:33", messages:[
+      { t:"day", text:"Today" },
+      { t:"them", s:"Leo", text:"Soooo are you and Sho a thing or a *thing*?", ts:"13:30" },
+      { t:"me", s:"Yara", text:"I don't know, are you two a thing?", ts:"13:31" },
+      { t:"them", s:"Leo", text:"lol deflection. Don't u worry. I'll find out", ts:"13:33" }
+    ]}
+  ]
+};
+const threadsEl = document.getElementById('threads');
+const threadsWrap = document.getElementById('threadsWrap');
+const chatWrap   = document.getElementById('chatWrap');
+const msgBack    = document.getElementById('msgBack');
+const msgTitle   = document.getElementById('msgTitle');
+const msgsEl     = document.getElementById('msgs');
+const typingEl   = document.getElementById('typing');
+const composerEl = document.getElementById('composer');
+const sendBtn    = document.getElementById('sendBtn');
+let currentThread = null;
+const AUTO_REPLY = { jin:"…", tohma:"Certainly.", natalia:"I have Do Not Disturb turned on right now. I'll respond when I can.",
+  kaito:"You got it!", lucas:"Sure thing.", chisaya:"Alright, senpai!", sho:"Anything for you, senpai.", leo:"Yeah yeah okay~" };
+function renderInbox(){
+  threadsWrap.style.display='flex'; chatWrap.style.display='none'; threadsEl.innerHTML='';
+  PHONE.threads.forEach(t=>{
+    const row=document.createElement('div'); row.className='thread'; row.onclick=()=>openThread(t.id);
+    row.innerHTML = `
+      <div class="avatar">${t.avatar}</div>
+      <div><div class="name">${t.name}</div><div class="snippet">${fmtSnippet(t)}</div></div>
+      <div style="text-align:right"><div class="ts">${t.lastTs||''}</div>${t.unread?`<div class="badge">${t.unread}</div>`:''}</div>`;
+    threadsEl.appendChild(row);
+  });
+}
+function fmtSnippet(t){ const last=[...t.messages].reverse().find(m=>m.t==='me'||m.t==='them'); if(!last) return ''; const txt=last.text||''; return txt.startsWith('#link:')?'Link':txt; }
+function openThread(id){
+  currentThread = PHONE.threads.find(t=>t.id===id); if(!currentThread) return;
+  currentThread.unread=0; msgTitle.textContent = currentThread.name;
+  threadsWrap.style.display='none'; chatWrap.style.display='flex'; renderChat(); scrollToEnd();
+}
+function renderChat(){
+  msgsEl.innerHTML=''; currentThread.messages.forEach(m=>{
+    if(m.t==='day'){ const d=document.createElement('div'); d.className='day'; d.innerHTML=`<span>${m.text}</span>`; msgsEl.appendChild(d); return; }
+    const b=document.createElement('div'); b.className='msg '+(m.t==='me'?'from-me':'');
+    if(m.s && m.t!=='me') b.innerHTML+=`<div class="sender">${m.s}</div>`;
+    if(m.text?.startsWith('#link:')){ const [href,label]=m.text.slice(6).split('|'); const a=document.createElement('a'); a.href=href; a.textContent=label||href; a.className='bubble-link'; a.target='_blank'; a.rel='noopener'; b.appendChild(a); }
+    else { b.appendChild(document.createTextNode(m.text||'')); }
+    if(m.choices){
+      const row=document.createElement('div'); row.className='choice-row';
+      m.choices.forEach(ch=>{ const btn=document.createElement('button'); btn.className='choice'; btn.textContent=ch.label; btn.onclick=()=>applyChoice(m,ch); row.appendChild(btn); });
+      b.appendChild(row);
+    }
+    if(m.ts){ const meta=document.createElement('div'); meta.className='meta'; meta.innerHTML=`<span>${m.ts}</span>`; b.appendChild(meta); }
+    msgsEl.appendChild(b);
+  });
+}
+function applyChoice(parent, choice){ parent.choices=null; typingEl.hidden=false; renderChat(); scrollToEnd();
+  setTimeout(()=>{ typingEl.hidden=true; currentThread.messages.push(...choice.next); renderChat(); scrollToEnd(); }, 900); }
+msgBack.onclick = ()=>{ threadsWrap.style.display='flex'; chatWrap.style.display='none'; };
+sendBtn.onclick = ()=>{ if(!currentThread) return; const val=composerEl.value.trim(); if(!val) return;
+  currentThread.messages.push({t:'me',s:'Yara',text:val,ts:nowTime()}); composerEl.value=''; renderChat(); scrollToEnd();
+  const reply=AUTO_REPLY[currentThread.id] ?? "Noted."; setTimeout(()=>{ currentThread.messages.push({t:'them',s:currentThread.name.split(' ')[0],text:reply,ts:nowTime()}); renderChat(); scrollToEnd(); },600);
+};
+function nowTime(){ const d=new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function scrollToEnd(){ requestAnimationFrame(()=>{ msgsEl.scrollTop = msgsEl.scrollHeight; }); }
+
+/* ---------- WickHive ---------- */
+const FEED = [
+  { id:'lab-what', sub:'r/Frostheim', title:'The Lab',
+    teaser:'What is up with the lab these days? Ever since [REDACTED] left...',
+    full:`... it was quiet for a while after he left, but now the door's always shut and locked, and you could hear loud rock music is blaring through the doors, and it smells like sulfur and smoke, like copper burning. Some days, it smells pleasant, like warm coffee and citrus oil, but it's just unsettling because [REDACTED] used to always be playing classical music and made it a comforting place. What happened? `,
+    meta:'142 up • 7 comments • 1h'
+  },
+  { id:'howling-sounds', sub:'r/DarkwickRumors', title:'Howling Sounds duing Full Moon',
+    teaser:'Does anyone hear howling during full moons?',
+    full:`Was walking by the defunct Ultio House last month where I swear I heard faint howling, but then just last night on the full moon, I went back to see if I'd hear it again, and I swear I did. Did anyone else have this experience?`,
+    meta:'311 up • 89 comments • 3h'
+  },
+  { id:'casino-rigged', sub:'r/Sinostra', title:'Casino',
+    teaser:'Anyone feeling like the games here are rigged?',
+    full:`That sharp-tooth psycho Captain spends his whole days just gambling, but he seems to win more than he loses, but then when I play, I lose every time. What the hell is going on? Do you think it's rigged?`,
+    meta:'64 up • 12 comments • 5h'
+  }
+];
+function renderFeed(){
+  const feed = document.getElementById('feed'); feed.innerHTML='';
+  FEED.forEach(p=>{
+    const div = document.createElement('div'); 
+    div.className = 'post';
+    div.innerHTML = `
+      <div class="head">
+        <div class="sub">${p.sub}</div>
+        <div class="toggle" aria-label="Expand">⋮</div>
+      </div>
+      <div class="body">
+        <strong class="toggle" style="display:block">${p.title}</strong>
+        <div class="teaser toggle">${p.teaser}</div>
+        <div class="full">${p.full.replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="meta">${p.meta}</div>
+      <div class="actions">
+        <div class="pill">Upvote</div>
+        <div class="pill">Comment</div>
+        <div class="pill">Save</div>
+      </div>
+    `;
+    div.querySelectorAll('.toggle').forEach(el=>el.addEventListener('click', ()=> div.classList.toggle('open')));
+    feed.appendChild(div);
+  });
+}
+
+/* ---------- Photos ---------- */
+const grid = document.getElementById('photoGrid');
+const light= document.getElementById('lightbox');
+const lightImg = document.getElementById('lightImg');
+document.getElementById('closeLight').onclick=()=>{ light.style.display='none'; lightImg.src=''; };
+function renderPhotos(){
+  grid.innerHTML=''; DATA.photos.forEach(src=>{
+    const img=document.createElement('img'); img.src=src; img.alt='Photo';
+    img.onclick=()=>{ lightImg.src=src; light.style.display='flex'; };
+    grid.appendChild(img);
+  });
+}
+
+/* ---------- Emojis ---------- */
+const emojiGrid      = document.getElementById('emojiGrid');
+const emojiLightbox  = document.getElementById('emojiLightbox');
+const emojiLightImg  = document.getElementById('emojiLight');
+document.getElementById('closeEmojiLight').onclick = ()=>{
+  emojiLightbox.style.display='none'; emojiLightImg.src='';
+};
+function emojiSrc(name){
+  const hasExt = /\.png$/i.test(name);
+  return (DATA.emojiBase||'') + (hasExt ? name : name + '.png');
+}
+function renderEmojis(){
+  emojiGrid.innerHTML = '';
+  const list = [...DATA.emojis].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  list.forEach(name=>{
+    const img = document.createElement('img');
+    img.src = emojiSrc(name);
+    img.alt = '';
+    img.addEventListener('click', ()=>{
+      emojiLightImg.src = emojiSrc(name);
+      emojiLightImg.alt = '';
+      emojiLightbox.style.display='flex';
+    });
+    emojiGrid.appendChild(img);
+  });
+}
+
+/* ---------- Wickstagram (Chi + Yara only) ---------- */
+function renderInsta(){
+  const tabsEl = document.getElementById('instaTabs');
+  const feedEl = document.getElementById('instaFeed');
+  if (!tabsEl || !feedEl) return;
+
+  const profiles = (DATA.insta && DATA.insta.profiles) ? DATA.insta.profiles : [];
+  if (!profiles.length) {
+    feedEl.innerHTML = '<div class="small muted">No posts yet.</div>';
+    tabsEl.innerHTML = '';
+    return;
+  }
+
+  let activeId = renderInsta.active || profiles[0].id;
+
+  function drawTabs(){
+    tabsEl.innerHTML = '';
+    profiles.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'insta-tab' + (p.id === activeId ? ' active' : '');
+      btn.textContent = p.name.split(' ')[0]; // "Chi" / "Yara"
+      btn.addEventListener('click', () => {
+        activeId = p.id;
+        renderInsta.active = activeId;
+        drawTabs();
+        drawFeed();
+      });
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function drawFeed(){
+    const prof = profiles.find(p => p.id === activeId) || profiles[0];
+    feedEl.innerHTML = '';
+    prof.posts.forEach(post => {
+      const card = document.createElement('article');
+      card.className = 'insta-post';
+      card.innerHTML = `
+        <div class="ip-head">
+          <div class="ip-avatar">
+            <img src="${prof.avatar}" alt="${prof.name}">
+          </div>
+          <div class="ip-user">
+            <div class="ip-name">${prof.name}</div>
+            <div class="ip-handle">${prof.handle}</div>
+          </div>
+          <div class="ip-meta">${post.time || ''}</div>
+        </div>
+        ${post.img ? `<img src="${post.img}" alt="">` : ''}
+        <div class="ip-body">
+          <div class="ip-caption">${post.caption || ''}</div>
+        </div>
+        <div class="ip-actions">
+          <span>♥ ${post.likes || '0'}</span>
+          <span>⋯</span>
+        </div>
+      `;
+      feedEl.appendChild(card);
+    });
+  }
+
+  drawTabs();
+  drawFeed();
+}
+
+/* ---------- READ-ONLY APPS ---------- */
+function renderContacts(){
+  const list = document.getElementById('pList');
+  list.innerHTML = '';
+  DATA.contacts.forEach(c=>{
+    const d = document.createElement('div');
+    d.className = 'item';
+    const phoneLine = c.phone ? `<div class="small">${c.phone}</div>` : '';
+    d.innerHTML = `
+      <div class="contact-head">
+        <h4 class="contact-name">${c.name}</h4>
+        <div class="btnrow" aria-hidden="true">
+          <div class="ghostbtn">Call</div>
+          <div class="ghostbtn">Message</div>
+        </div>
+      </div>
+      ${phoneLine}
+      <div class="small muted">${c.note || ''}</div>
+    `;
+    list.appendChild(d);
+  });
+}
+function renderCalls(){
+  const list=document.getElementById('cList'); list.innerHTML='';
+  DATA.callLog.forEach(c=>{
+    const d=document.createElement('div'); d.className='item';
+    d.innerHTML = `<h4>${c.name} <span class="label">${c.type}</span></h4>
+                   <div class="small muted">${c.ts}</div>
+                   <div class="divider"></div>
+                   <div class="small">${c.note||''}</div>`;
+    list.appendChild(d);
+  });
+}
+function renderReminders(){
+  const list=document.getElementById('rList'); list.innerHTML='';
+  DATA.reminders.forEach(r=>{
+    const d=document.createElement('div'); d.className='item';
+    d.innerHTML = `<h4>${r.text}</h4><div class="small muted">${r.when}</div>`;
+    list.appendChild(d);
+  });
+}
+function renderNotes(){
+  const list=document.getElementById('nList'); list.innerHTML='';
+  DATA.notes.forEach(n=>{
+    const d=document.createElement('div'); d.className='item';
+    d.innerHTML = `<div>${n}</div>`;
+    list.appendChild(d);
+  });
+}
+function renderJournal(){
+  const list = document.getElementById('jList');
+  list.innerHTML = '';
+  DATA.journal.forEach((e, i)=>{
+    const d = document.createElement('div');
+    d.className = 'item link';
+    d.innerHTML = `
+      <h4>${e.title}</h4>
+      <div class="small muted">${e.when}</div>
+    `;
+    d.addEventListener('click', ()=>openJournal(i));
+    list.appendChild(d);
+  });
+}
+async function openJournal(idx){
+  const e = DATA.journal[idx];
+  const box = document.getElementById('jDetail');
+
+  box.innerHTML = `
+    <h2>${e.title}</h2>
+    <div class="small muted">${e.when}</div>
+    <div class="divider" style="margin:10px 0"></div>
+    <div class="loading small muted">Loading…</div>
+  `;
+
+  if (e.src) {
+    const md = await fetch(e.src).then(r => r.text());
+    box.querySelector('.loading').outerHTML = marked.parse(md);
+  } else {
+    // fallback for legacy inline entries
+    box.querySelector('.loading').outerHTML = e.body || '';
+  }
+
+  titles.journalDetail = 'Journal';
+  showPanel('journalDetail');
+}
+
+
+/* ---------- Clock ---------- */
+function tzTime(tz){ return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit', timeZone: tz}); }
+function renderClockApp(){
+  const tSF  = document.getElementById('tSF');
+  const tTYO = document.getElementById('tTYO');
+  function tickClocks(){
+    tSF.textContent  = tzTime(DATA.clocks.cities[0]);
+    tTYO.textContent = tzTime(DATA.clocks.cities[1]);
+  }
+  tickClocks();
+  if(!renderClockApp._int){ renderClockApp._int = setInterval(tickClocks, 1000); }
+  const alarmList=document.getElementById('alarmList'); alarmList.innerHTML='';
+  DATA.clocks.scheduled.forEach(a=>{
+    const row=document.createElement('div'); row.className='small';
+    row.innerHTML = `<span class="label">${a.time}</span> ${a.label}`;
+    alarmList.appendChild(row);
+  });
+}
+
+/* ---------- init ---------- */
+function setTopBarInitial(){ setTopBarState('home'); }
+setTopBarInitial();
+
+/* ---------- app launcher + dock clicks ---------- */
+function openApp(id){
+  // render per-app content before showing the panel
+  switch(id){
+    case 'messages':   renderInbox(); break;
+    case 'wickhive':   renderFeed(); break;
+    case 'photos':     renderPhotos(); break;
+    case 'emojis':     renderEmojis(); break;
+    case 'private':    renderPrivate(); break;
+    case 'insta':      renderInsta(); break;
+    case 'story':      renderStory(); break;
+    case 'journal':    renderJournal(); break;
+    case 'notes':      renderNotes(); break;
+    case 'calls':      renderCalls(); break;
+    case 'reminders':  renderReminders(); break;
+    case 'contacts':   renderContacts(); break;
+    case 'clockapp':   renderClockApp(); break;
+  }
+  showPanel(id);
+}
+
+// enable dock buttons
+document.querySelectorAll('.dock .icon').forEach(el=>{
+  el.addEventListener('click', () => openApp(el.dataset.app));
+});
+
+</script>
+</body>
+</html>

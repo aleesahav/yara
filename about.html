@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Whispering Tides — About</title>
+<meta name="theme-color" content="#0b0b0d" />
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0b0d; --ink:#eaeaea; --muted:#a3a9b8; --accent:#ffd54a; --line:#232739; --card:#0f1118;
+    /* text area sizing */
+    --body-pad: clamp(16px, 2.2vw, 22px);
+    --body-min-h: clamp(160px, 18vh, 280px);
+  }
+
+  html{ margin:0; height:100%; background:transparent; }
+  body{
+    margin:0; min-height:100%;
+    background:transparent; color:var(--ink);
+    font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1;
+    background:var(--bg) url("assets/wt_bg.png") no-repeat center/cover;
+  }
+
+  .wrap{ min-height:100svh; display:grid; grid-template-rows:auto 1fr auto; }
+  .logo{ display:grid; place-items:center; padding:clamp(12px,3vw,24px) 0 0; }
+  .logo img{
+    width:min(460px,56vw); height:auto; display:block;
+    filter:drop-shadow(0 10px 30px rgba(0,0,0,.45));
+  }
+
+  .stage{ position:relative; display:grid; place-items:center; padding:clamp(16px,4vw,40px); }
+
+  /* Card */
+  .card{
+    position:relative; isolation:isolate; width:min(1800px,96vw);
+    border-radius:14px; overflow:hidden;
+    background:rgba(6,8,12,.20);
+    box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.04);
+    backdrop-filter: blur(2px);
+  }
+  .card-inner{ padding:clamp(18px,2.2vw,32px); }
+
+  /* Heading */
+  .heading{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    margin-bottom:clamp(14px,1.8vw,20px);
+  }
+  .heading h1{
+    margin:0; font-family:'Merriweather', Georgia, 'Times New Roman', serif;
+    font-weight:800; font-size:clamp(22px,2.6vw,36px);
+  }
+  .heading p{ margin:0; color:var(--muted); font-size:clamp(12px,1.6vw,14px); }
+
+  /* 3-column grid */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:clamp(14px,2vw,24px);
+  }
+
+  /* Panels */
+  .panel{
+    background:rgba(10,12,18,.45);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:12px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .panel .media{
+    aspect-ratio:16/9;                   /* keep full column image */
+    background:#0f1118;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:grid; place-items:center; overflow:hidden;
+    border-top-left-radius:12px; border-top-right-radius:12px;
+  }
+  .panel .media img{ width:100%; height:100%; object-fit:cover; }
+
+  /* Bigger writing area */
+  .panel .body{
+    padding:var(--body-pad);
+    min-height:var(--body-min-h);
+    line-height:1.72;
+  }
+  .panel h2{
+    margin:0 0 10px 0;
+    font-family:'Merriweather', Georgia, 'Times New Roman', serif;
+    font-weight:800; font-size:clamp(17px,2vw,24px);
+  }
+  .panel p{
+    margin:0; color:var(--ink); opacity:.96;
+    font-size:clamp(14px,1.7vw,16px);
+  }
+
+  /* Return button (mirrors homepage placement) */
+  .return{
+    position:absolute; z-index:50;
+    left:calc(50% + (min(1800px,96vw) / 2) + 16px);
+    top:50%; transform:translateY(-50%);
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+    padding:10px 14px; border-radius:999px; border:1px solid var(--accent);
+    background:rgba(255,213,74,.12); color:var(--ink); font-weight:700; font-size:14px;
+    backdrop-filter: blur(3px);
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+    text-decoration:none;
+  }
+  .return:hover{ transform:translateY(-50%) translateX(2px); background:rgba(255,213,74,.2); }
+  .return svg{ width:18px; height:18px; }
+
+  /* Footer */
+  footer{
+    color:var(--muted); padding:20px clamp(16px,3vw,24px);
+    text-align:center; font-size:clamp(12px,2.4vw,14px);
+    text-wrap:balance; background:transparent;
+  }
+  footer .rule{
+    height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent);
+    border:0; margin:16px 0 12px;
+  }
+
+  /* Mobile */
+  @media (max-width:1100px){
+    .grid{ grid-template-columns:1fr; }
+    .return{ position:fixed; left:auto; right:clamp(12px,3vw,20px); }
+  }
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">
+      <img src="assets/wt_logo.png" alt="Whispering Tides" />
+    </div>
+
+    <main class="stage">
+      <div class="card" id="about-card">
+        <div class="card-inner">
+          <div class="heading">
+            <h1>About</h1>
+            <p>Learn about me and my illustrative fanwork, and the game that inspired me.</p>
+          </div>
+          <div class="grid">
+            <article class="panel" id="about-me">
+              <div class="media">
+                <img src="assets/about_me.jpg" alt="About me" />
+              </div>
+              <div class="body">
+                <h2>About Me</h2>
+               <p>My name is Aleesa! I'm a Filipino-American freelance illustrator based in California.</p>
+<p>&nbsp;</p>
+<p>I've been an artist and a writer for as long as I can remember, and so I especially love any form of illustrative storytelling, whether that's be in the form of comics, visual novels, or video games. My goal one day is to write my own webcomic, publish my own novel with original illustrations, or even create a visual novel. If in another life or this life, or if I'm meant to make an art as a career in this one, I'd love to design video game characters and write their stories.</p>
+<p>&nbsp;</p>
+<p>By day, I work as an ICU social worker! You can find more about me and view my other works at my art card, <a href="http://aleesa.carrd.co">here!</a></p> </div>
+            </article>
+
+            <article class="panel" id="about-project">
+              <div class="media">
+                <img src="assets/about_project.png" alt="About the project image placeholder" />
+              </div>
+              <div class="body">
+                <h2>About the Project</h2>
+                <p>Since I was a kid, I loved consuming fan art, fan fiction, and creating my own OCs but never had the guts to do anything with my interests. I still have some OC art work from my childhood.</p>
+<p>&nbsp;</p>
+<p>With Yara and her world, the story I've called Whispering Tides, started off as a bit of self indulgence story inspired as a ship to Jin Kamurai, but it became so much more to me. In many ways, she carries a part of me, my dreams, my aspirations, my hobbies, my thoughts about the world (seen and unseen), and in other ways she carries a part of everyone else I've ever met that has made me feel alive. And that's the truth of the project and what it's become &mdash; it is something that makes me feel alive and human as I create it. It may never mean a whole lot to the world and its story may never actually see the light of day in its entirity, but right now, as I create it, that's what it is to me &mdash; something I've made with my two hands and my heart.</p>
+<p>&nbsp;</p>
+<p>I hope if you've stumbled across it, you see my heart in it, even if it is art that is born of another serialized piece of work.</p>              </div>
+            </article>
+
+            <article class="panel" id="about-game">
+              <div class="media">
+                <img src="assets/tokyo-debunker.webp" alt="Tokyo Debunker" />
+              </div>
+              <div class="body">
+                <h2>About the Game</h2>
+     <p>Tokyo Debunker, owned and created by <a href="https://www.zigzagame.com/">Zigza</a>, inspired this project of mine. If you don't already follow the game and the story, you can see their official website <a href="https://tokyodebunker.com/">here.</a> Their fandom wiki is <a href="https://tokyodebunker.fandom.com/wiki/Tokyo_Debunker_Wiki">here.</a>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;"Tokyo &mdash; where the brightest lights cast the darkest shadows. When you brush past a thousand shoulders a day, can you really be sure all of them are human? Stray hearts gather at the crossroads, each with a wish they sold their soul to fulfill. The ordeals that await them will test their bonds and their hunger. Unveil the truth that lurks in the shadows. Welcome to Darkwick Academy."</p>
+<p>&nbsp;</p>
+<p>Tokyo Debunker is mobile adventure and character collecting game created by ZigZaGame. After being cursed by an anomaly, the main character is enrolled into the prestigious Darkwick Academy and interacts with other students known as ghouls to help solve supernatural cases all over Tokyo, as well as aim to find out the way to cure her curse.</p>
+<p>&nbsp;</p></div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right-side button to go back home (mirrors homepage enter button) -->
+      <a class="return" href="index.html" aria-label="Return to Home">
+        Return to Home
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </main>
+
+    <footer>
+      <div class="rule"></div>
+   <small><strong>Disclaimer:</strong> <em>This is a OC fansite made for creative, and non-comerial use, and created based off the world and lore of Tokyo Debunker, belonging to Zigza. Frostheim, Darkwick Academy, and Tokyo Debunker logos and the rest of the Tokyo Debunker lore are trademarked and copyrighted by Zigza. All art (fanart or otherwise) found on this website unless indicated has been created by me, Aleesa Bautista.</small></em>
+    </footer>
+  </div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

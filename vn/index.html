@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Whispering Tides Visual Novel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Title / Episode Select -->
+    <section id="menu" class="screen">
+      <div class="menuWrap">
+        <img class="siteLogo" src="assets/wt_logo.png" alt="Whispering Tides" />
+
+        <h1 id="menuTitle">Whispering Tides: Eventide</h1>
+        <p id="menuPrompt" class="muted"><i>
+          In a world where anomalies hide in plain sight, Yara Du Verre was born hearing a voice — whispering from nowhere,
+          humming beneath her skin, murmuring in the tides, looping through her dreams, and beckoning from the dark.
+          She gave it a name and carved it a place in her soul. Now, she swears she'll follow the Whispering — even into the ocean’s depths,
+          where the light dies — just to learn what it wants and why it chose her to haunt.
+        </i></p>
+
+        <p>Select an episode.</p>
+
+        <div id="episodeList" class="episodeList"></div>
+
+        <div class="backRow" id="backRow">
+          <button id="btnBackHome" class="btn" type="button">Back to Home</button>
+        </div>
+
+        <p id="menuError" class="error hidden"></p>
+      </div>
+    </section>
+
+    <!-- VN Player -->
+    <section id="player" class="screen hidden">
+      <div id="stage" class="stage">
+        <div id="bg" class="bg"></div>
+
+        <div class="spriteLayer">
+          <img id="slot-left" class="sprite slot-left hidden" alt="" />
+          <img id="slot-center" class="sprite slot-center hidden" alt="" />
+          <img id="slot-right" class="sprite slot-right hidden" alt="" />
+        </div>
+
+        <!-- TALKING HEAD (shows only when Yara speaks) -->
+        <div id="talkHead" class="talkHead hidden" aria-hidden="true">
+          <img id="talkHeadImg" alt="" />
+        </div>
+
+        <!-- COMIC PANEL (full takeover) -->
+        <div id="panelOverlay" class="panelOverlay hidden" aria-hidden="true">
+          <img id="panelImg" alt="" />
+        </div>
+
+        <!-- ITEM OVERLAY (non-blocking, dialogue still runs) -->
+        <div id="itemOverlay" class="itemOverlay hidden" aria-hidden="true">
+          <div class="itemFrame">
+            <img id="itemImg" alt="" />
+          </div>
+        </div>
+
+        <!-- TEXT MESSAGE OVERLAY (single instance ONLY) -->
+        <div id="smsOverlay" class="smsOverlay hidden" aria-hidden="true">
+          <div class="smsCard">
+            <div class="smsHeader">
+              <img id="smsIconImg" class="smsIcon" alt="" />
+              <div class="smsTitle">
+                <div id="smsName" class="smsName">Contact</div>
+                <div id="smsSub" class="smsSub">Messages</div>
+              </div>
+            </div>
+
+            <div id="smsBody" class="smsBody" aria-live="polite" aria-atomic="false"></div>
+
+            <div id="smsTyping" class="smsTyping hidden" aria-hidden="true">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="typingLabel">Typing…</span>
+            </div>
+
+            <div id="smsReplies" class="smsReplies hidden" aria-label="Reply choices"></div>
+
+            <div class="smsInputBar">
+              <div class="smsInputFake">Message…</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="flashbackOverlay" class="flashbackOverlay hidden" aria-hidden="true"></div>
+
+        <div class="topbar">
+          <button id="btnMenu" class="btn">Menu</button>
+          <button id="btnLog" class="btn">Log</button>
+          <button id="btnRestart" class="btn">Restart</button>
+        </div>
+
+        <!-- Dialogue UI -->
+        <div id="dialogueBox" class="dialogueBox vnDialogue">
+          <div class="nameRow">
+            <span id="speaker" class="speaker"></span>
+          </div>
+
+          <div id="text" class="text" aria-live="polite" aria-atomic="true"></div>
+
+          <div id="choices" class="choices" aria-label="Choices"></div>
+
+          <div class="hint muted" id="hint"></div>
+        </div>
+      </div><!-- /stage -->
+
+      <!-- VN Footer (ONLY shows when #player is visible) -->
+      <div class="vnFooter" role="note" aria-label="Controls and disclaimer">
+        <div class="vnFooterRow">
+          <span class="vnFooterPill">Click / Space / Enter: Next</span>
+          <span class="vnFooterPill">↑ / ↓: Choose</span>
+          <span class="vnFooterPill">Space / Enter: Select</span>
+        </div>
+
+        <div class="vnFooterFine muted">
+          This is a non-commercial fan-made story inspired by <span class="vnFooterStrong">Tokyo Debunker</span>.
+          Not affiliated with or endorsed by its creators.
+        </div>
+      </div>
+
+      <!-- Log Modal (ONLY ONE) -->
+      <div id="logModal" class="modal hidden">
+        <div class="modalCard">
+          <div class="modalHeader">
+            <strong>Log</strong>
+            <button id="btnCloseLog" class="btn">Close</button>
+          </div>
+          <div id="logBody" class="logBody"></div>
+        </div>
+      </div>
+    </section>
+  </div><!-- /app -->
+
+  <!-- AUDIO (BGM + AMB + SFX) -->
+  <audio id="bgm" preload="auto" loop></audio>
+  <audio id="amb" preload="auto" loop></audio>
+
+  <!-- keep a small pool for overlapping SFX -->
+  <div id="sfxPool" aria-hidden="true" style="display:none">
+    <audio class="sfx" preload="auto"></audio>
+    <audio class="sfx" preload="auto"></audio>
+    <audio class="sfx" preload="auto"></audio>
+    <audio class="sfx" preload="auto"></audio>
+  </div>
+
+  <script src="lib/inkjs.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

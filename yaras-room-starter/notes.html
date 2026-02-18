@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Yara — Crumpled Notes</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --ink:#eaeaea; --muted:#9aa0b5; --card:#151518; --line:#2a2a2e;
+  }
+  html,body{margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  .wrap{max-width:min(1100px,96vw); margin:0 auto; padding:clamp(12px,2vw,20px);}
+
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;}
+  h1{margin:0; font-size:clamp(16px,3.4vw,20px); letter-spacing:.2px; color:var(--ink);}
+  .hint{opacity:.65; font-size:.9rem; color:var(--muted);}
+
+  /* grid */
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:12px; padding-bottom:12px;
+  }
+  figure.card{
+    margin:0; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; overflow:hidden; /* no caption, just the image tile */
+  }
+  .thumb-wrap{
+    position:relative; width:100%;
+    aspect-ratio:1 / 1;               /* change to 1 / 1 for squares */
+    overflow:hidden; background:#0f1014;
+    cursor:pointer;
+  }
+  img.thumb{
+    width:100%; height:100%; object-fit:cover; display:block;
+    transition:transform .18s ease, filter .18s ease;
+  }
+  .card:hover .thumb{ transform:scale(1.02); filter:brightness(1.05) }
+
+  .topbar{position:sticky; top:0; background:linear-gradient(180deg, rgba(11,11,13,.96), rgba(11,11,13,.86));
+          border-bottom:1px solid var(--line); padding:.6rem .8rem; z-index:10; border-radius:10px;}
+  .topbar .count{opacity:.8; font-size:.9rem;}
+
+  /* Lightbox */
+  .lightbox{
+    position:fixed; inset:0; z-index:9999; display:none; place-items:center;
+    background:rgba(0,0,0,.82); backdrop-filter: blur(2px);
+  }
+  .lightbox[aria-hidden="false"]{ display:grid; }
+  .lb__frame{ position:relative; max-width:min(92vw, 1400px); max-height:92vh; }
+  .lb__img{
+    max-width:100%; max-height:92vh; display:block; border-radius:12px; border:1px solid #2a3147;
+    box-shadow:0 28px 80px rgba(0,0,0,.6);
+  }
+  .lb__close{
+    position:absolute; top:-44px; right:0; border:1px solid #2a3147; background:#111627; color:#eef;
+    border-radius:10px; padding:6px 10px; cursor:pointer;
+  }
+  @media (max-width:680px){ .lb__close{ top:8px; right:8px; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <header>
+        <h1>Crumpled Notes</h1>
+        <div class="count" id="count">0 items</div>
+      </header>
+      <div class="hint"></div>
+    </div>
+
+    <main class="gallery" id="gallery" aria-live="polite" aria-busy="true"></main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-label="Full-size image viewer">
+    <div class="lb__frame">
+      <img id="lbImg" class="lb__img" alt="">
+      <button class="lb__close" type="button" id="lbClose">× Close</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const gallery = document.getElementById('gallery');
+  const countEl = document.getElementById('count');
+
+  // 🔧 Update with your real files
+  const GARBAGE_ITEMS = [
+    { src:'assets/notes/note-01.png' },
+    { src:'assets/notes/note-02.png' },
+    { src:'assets/notes/note-03.png' },
+    { src:'assets/notes/note-04.png' },
+    { src:'assets/notes/note-05.png' }
+  ];
+
+  // build cards (no captions)
+  GARBAGE_ITEMS.forEach(item => gallery.appendChild(makeCard(item)));
+  gallery.setAttribute('aria-busy','false');
+  countEl.textContent = `${GARBAGE_ITEMS.length} item${GARBAGE_ITEMS.length===1?'':'s'}`;
+
+  function makeCard(item){
+    const fig = document.createElement('figure');
+    fig.className = 'card';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap';
+    wrap.setAttribute('role','button');
+    wrap.setAttribute('tabindex','0');
+
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.loading = 'lazy';
+    img.src = item.thumb || item.src;
+    img.alt = ''; // decorative; no caption
+
+    // open lightbox
+    function open(){ openLightbox(item.src, ''); }
+    wrap.addEventListener('click', open);
+    wrap.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); open(); } });
+
+    wrap.appendChild(img);
+    fig.appendChild(wrap);
+    return fig;
+  }
+
+  // lightbox
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbClose = document.getElementById('lbClose');
+
+  function openLightbox(src, alt){
+    lbImg.src = src;
+    lbImg.alt = alt || '';
+    lb.setAttribute('aria-hidden','false');
+    document.addEventListener('keydown', onEsc);
+  }
+  function closeLightbox(){
+    lb.setAttribute('aria-hidden','true');
+    lbImg.src = '';
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e){ if (e.key === 'Escape') closeLightbox(); }
+  lb.addEventListener('click', (e)=>{ if (e.target === lb) closeLightbox(); });
+  lbClose.addEventListener('click', closeLightbox);
+})();
+</script>
+</body>
+</html>

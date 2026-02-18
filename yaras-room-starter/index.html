@@ -1,0 +1,1545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Yara’s Room</title>
+
+<style>
+  :root{
+    --accent:#8f4aff;
+    --bg:#0b0b0d;
+    --ink:#eaeaea;
+    --gold:#ffd54a;
+    --panel-bg: rgba(18,18,22,.86);
+    --panel-bd: rgba(42,42,46,.85);
+    --shadow: 0 22px 70px rgba(0,0,0,.65);
+
+    --music-embed-h: 75px;
+    --music-header-h: 36px;
+  }
+
+  html{ margin:0; height:100%; background:transparent; }
+  body{
+    margin:0; min-height:100%;
+    background:transparent; color:var(--ink);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1;
+    background: var(--bg) url("../assets/wt_bg.png") no-repeat center/cover;
+  }
+
+  .wrap{
+    max-width: min(1700px, 96vw);
+    margin: 0 auto;
+    padding: clamp(12px, 2vw, 24px);
+    position:relative;
+  }
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:12px;
+  }
+  header h1{ margin:0; font-size:clamp(18px,3vw,24px); letter-spacing:.2px; }
+
+  .btn{
+    appearance:none; border:1px solid #2a2a2e; background:#151518; color:#ddd;
+    padding:.5rem .75rem; border-radius:8px; cursor:pointer;
+  }
+  .btn:hover{ border-color:#3a3a40; }
+
+  .stage{
+    width:100%; height:auto; display:block;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+
+  body.modal-open{ overflow:hidden; }
+
+  /* Left-side Back button */
+  .back-home{
+    position:absolute; z-index:50;
+    left: calc(50% - (min(1800px, 96vw) / 2) - 16px);
+    top: 50%;
+    transform: translate(-100%, -50%);
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+    padding:10px 14px; border-radius:999px;
+    border:1px solid var(--gold);
+    background:rgba(255,213,74,.12);
+    color:var(--ink);
+    font-weight:700; font-size:14px;
+    backdrop-filter: blur(3px);
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    text-decoration:none;
+  }
+  .back-home:hover{
+    transform: translate(-100%, -50%) translateX(-2px);
+    background:rgba(255,213,74,.2);
+  }
+  .back-home svg{ width:18px; height:18px; }
+
+  /* Hotspots and overlays */
+  a[role="link"] .hotspot{
+    fill: rgba(255,255,255,0.001);
+    stroke: transparent;
+    stroke-width: 2;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .hover-visual{
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease;
+    transform-origin:center;
+    transform-box:fill-box;
+  }
+  .hs:hover .hover-visual,
+  .hs:focus-within .hover-visual{ opacity:1; }
+
+  .hs--secret:hover .hover-visual,
+  .hs--secret:focus-within .hover-visual{ transform: translateX(3px); }
+
+  @media (prefers-reduced-motion: reduce){
+    .hover-visual{ transition:none; }
+  }
+  .hs.active .hover-visual{ opacity:1 !important; }
+
+  /* SVG click border cleanup */
+  svg.stage a[role="link"]:focus{ outline:none; }
+  svg.stage a[role="link"]:focus-visible{ outline:0; }
+  svg.stage .hotspot:focus, svg.stage .hotspot:focus-visible{ outline:0; }
+  image.hover-visual{ outline:0 !important; }
+  svg.stage a[role="link"]{ -webkit-tap-highlight-color: transparent; }
+
+  /* =========================================
+     MODAL SYSTEM 
+     ========================================= */
+  .modal{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    display:none;
+    background: transparent;
+  }
+  .modal.open{ display:block; }
+
+  .modal__panel{
+    position:fixed; 
+    left:50%;
+    top:50%;
+    transform: translate(-50%, -50%);
+    width: min(1100px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-bd);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    color:#e7e3ff;
+  }
+
+  /* floating close only */
+  .modal__bar{
+    position:absolute;
+    top:10px; right:10px;
+    z-index:5;
+    display:flex;
+    justify-content:flex-end;
+    background:transparent;
+    border:0;
+    padding:0;
+  }
+  .modal__close{
+    border:0;
+    background:transparent;
+    color: var(--accent);
+    font-weight:900;
+    font-size:18px;
+    cursor:pointer;
+    line-height:1;
+    text-shadow: 0 8px 22px rgba(0,0,0,.45);
+  }
+
+  .modal__body{
+    flex:1 1 auto;
+    min-height:0;
+    padding:0;
+    display:flex;
+  }
+
+  .frame-shell{
+    width:100%;
+    height:100%;
+    min-height:0;
+    display:flex;
+    padding:10px;
+    box-sizing:border-box;
+  }
+  .frame-shell iframe{
+    width:100%;
+    height:100%;
+    min-height:0;
+    border:0;
+    display:block;
+    background:transparent;
+    border-radius:14px;
+    box-shadow:0 10px 35px rgba(0,0,0,.35);
+  }
+
+  .frame-shell--wide{
+  height: min(72vh, calc(100vh - 220px));
+}
+  .frame-shell--phone{
+    height: min(84vh, calc(100vh - 120px));
+    justify-content:center;
+  }
+  .frame-shell--phone iframe{
+    width: min(430px, 92vw);
+    height:100%;
+    border-radius:22px;
+  }
+
+  /* Directional tail */
+  .modal__panel::after{
+    content:"";
+    position:absolute;
+    width:18px;
+    height:18px;
+    background: var(--panel-bg);
+    transform: rotate(45deg);
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+    display:block;
+  }
+  .modal__panel{
+    --tail-offset: 50%;
+    --tail-gap: -9px;
+  }
+  .modal__panel[data-tail="bottom"]::after{
+    left: var(--tail-offset);
+    bottom: var(--tail-gap);
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 1px solid var(--panel-bd);
+    border-bottom: 1px solid var(--panel-bd);
+  }
+  .modal__panel[data-tail="top"]::after{
+    left: var(--tail-offset);
+    top: var(--tail-gap);
+    transform: translateX(-50%) rotate(45deg);
+    border-left: 1px solid var(--panel-bd);
+    border-top: 1px solid var(--panel-bd);
+  }
+/* --- BARE bubble: no panel/backdrop, just the content --- */
+.bubbleModal.bubbleModal--bare{
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Optional: keep a tiny drop shadow on the content itself */
+.bubbleModal--bare .bubbleMedia img,
+.bubbleModal--bare .bubbleMedia iframe{
+  box-shadow: 0 18px 55px rgba(0,0,0,.55);
+}
+
+/* Phone bubble wrapper */
+#phoneBubble{
+  width: min(420px, 92vw);
+}
+
+/* No forced aspect ratio wrapper */
+#phoneBubble .bubbleMedia{
+  display:grid;
+  place-items:center;
+  padding:0;
+}
+
+/* The iframe gets the aspect ratio (so it has height) */
+#phoneBubble .bubbleMedia iframe{
+  width: min(380px, 92vw);
+  aspect-ratio: 9 / 19.5;   /* controls height */
+  height: auto;             /* works because aspect-ratio defines it */
+  border:0;
+  border-radius:28px;
+  display:block;
+  background: transparent;
+  overflow:hidden;
+  box-shadow: 0 18px 55px rgba(0,0,0,.55); /* optional */
+}
+  /* Bubble-style anchored modal */
+.bubbleModal{
+  position: fixed;
+  z-index: 9999;
+  width: min(520px, 92vw);
+  border-radius: 16px;
+  border: 1px solid rgba(143,74,255,.55);
+  background: rgba(14,16,24,.72);
+  box-shadow: 0 22px 70px rgba(0,0,0,.65);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  padding: 12px;
+}
+
+.bubbleModal::after{
+  content:"";
+  position:absolute;
+  left: var(--arrow-x, 50%);
+  top: 100%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border: 12px solid transparent;
+  border-top-color: rgba(14,16,24,.72); /* bubble fill */
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.45));
+}
+
+.bubbleModal::before{
+  content:"";
+  position:absolute;
+  left: var(--arrow-x, 50%);
+  top: 100%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border: 13px solid transparent;
+  border-top-color: rgba(143,74,255,.55); /* arrow border */
+}
+
+/* ID image styling */
+.bubbleModal .bubbleMedia{
+  display:grid;
+  place-items:center;
+}
+
+.bubbleModal .bubbleMedia img{
+  width: 100%;
+  height: auto;
+  max-height: min(70vh, 460px);
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid rgba(42,49,71,.85);
+}
+
+  @media (max-width: 740px){
+    .modal__panel::after{ display:none; }
+    .frame-shell{ padding:10px; }
+  }
+
+  /* Debug */
+  .debug a[role="link"] .hotspot{ stroke:#ff61a6 !important; fill:rgba(255,97,166,.12) !important; }
+  .debug .hover-visual{ outline:1px dashed rgba(97,196,255,.8); outline-offset:-1px; opacity:.8 !important; }
+
+  footer{ margin:16px 0 40px; opacity:.65; font-size:.9rem; }
+
+  /* =========================================
+     THOUGHT BUBBLE (anchored to SVG hotspot)
+     ========================================= */
+  .thought-pop{
+    position: fixed;
+    z-index: 1600;
+    display: none;
+    width: min(520px, calc(100vw - 28px));
+    pointer-events: auto;
+    transform: translate(-50%, -100%);
+  }
+  .thought-pop.open{ display:block; }
+
+  .thought-pop .bubble{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-bd);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    padding: 12px 14px;
+    color: #e7e3ff;
+    position: relative;
+  }
+  .thought-pop .row{ display:flex; gap:12px; align-items:flex-start; }
+  .thought-pop .portrait{
+    width:64px; height:64px;
+    border-radius:999px;
+    overflow:hidden;
+    background:#0b0d12;
+    border:1px solid #2a3147;
+    flex:0 0 auto;
+  }
+  .thought-pop .portrait img{ width:100%; height:100%; object-fit:cover; }
+
+  .thought-pop .text{
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size:.95rem;
+    line-height:1.55;
+    opacity:.95;
+  }
+  .thought-pop .text p{
+    margin:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .thought-pop .text em{ color:#f1baff; font-style:italic; }
+
+  .thought-pop .close{
+    position:absolute;
+    right:10px; top:8px;
+    border:0;
+    background:transparent;
+    color: var(--accent);
+    font-weight:900;
+    font-size:18px;
+    cursor:pointer;
+    line-height:1;
+  }
+
+  .thought-pop .arrow{
+    position:absolute;
+    left:50%;
+    bottom:-10px;
+    width:18px;
+    height:18px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-bd);
+    border-bottom: 1px solid var(--panel-bd);
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+  }
+
+  /* Spotify mini player */
+  .music-panel{
+    position:fixed; right:16px; bottom:16px; z-index:1200;
+    width:min(420px, 92vw);
+    height: calc(var(--music-embed-h) + var(--music-header-h));
+    display:none;
+    background:#0b0e17; border:1px solid #2a3147; border-radius:14px; overflow:hidden;
+    box-shadow:0 12px 28px rgba(0,0,0,.5);
+  }
+  .music-panel.open{ display:block; }
+  .music-panel header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 10px; background:#0e1320; border-bottom:1px solid #232739;
+    font-weight:800; font-size:.9rem; color:#ececf2;
+    height: var(--music-header-h);
+  }
+  .music-embed{ width:100%; height: var(--music-embed-h); border:0; display:block; }
+  .music-close{
+    border:1px solid #2a3147; background:#121626; color:#ececf2;
+    border-radius:8px; padding:4px 8px; cursor:pointer;
+  }
+
+  /* Dev-mode visibility toggles */
+  .dev-only{ display:none; }
+  body.dev .dev-only{ display:flex; }
+  body.dev footer.dev-only{ display:block; }
+
+  /* Position mode HUD */
+  .pos-mode .hover-visual{ opacity:.9 !important; outline:1px dashed #7ad; outline-offset:-1px; pointer-events:auto; cursor:move; }
+  .pos-hud{
+    position: fixed; bottom: 12px; left: 12px; z-index: 2000;
+    background: #0f1116; border: 1px solid #2a2a2e; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; color: #eaeaea;
+  }
+  .pos-hud code{ background:#12151e; padding:2px 4px; border-radius:4px; }
+  .pos-hud button{ margin-left:8px; }
+</style>
+</head>
+
+<body>
+  <!-- Back button -->
+  <a class="back-home" href="../index.html" aria-label="Back Home">
+    Back Home
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M19 12H5"></path>
+      <path d="M11 5l-7 7 7 7"></path>
+    </svg>
+  </a>
+
+  <!-- Floating thought bubble -->
+  <div id="thoughtPop" class="thought-pop" role="dialog" aria-live="polite" aria-label="Thought">
+    <div class="bubble">
+      <button class="close" type="button" id="thoughtClose" aria-label="Close">✕</button>
+      <div class="row">
+        <div class="portrait">
+          <img id="thoughtImg" src="assets/ui/yara-portrait.png" alt="Yara">
+        </div>
+        <div class="text">
+          <p id="thoughtText"><em>“…”</em></p>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <h1>Yara’s Room</h1>
+
+      <div id="devTools" class="dev-only" style="gap:8px; align-items:center;">
+        <button id="toggleDebug" class="btn" type="button">Toggle Debug</button>
+        <button id="posMode" class="btn" type="button">Position Overlays</button>
+      </div>
+
+      <span style="opacity:.7; font-size:.95rem;">Hover or tap objects in Yara's room to reveal her lore.</span>
+    </header>
+
+    <svg class="stage" viewBox="0 0 3600 2400" aria-labelledby="title desc" role="img">
+      <title id="title">Yara’s Room — interactive</title>
+      <desc id="desc">Hotspots open modals or external links; overlays appear on hover.</desc>
+
+      <image href="assets/yaras-room.png" x="0" y="0" width="3600" height="2400" />
+
+      <!-- Playlist -->
+      <g class="hs hs--playlist">
+        <a role="link" tabindex="0" href="#music" data-music-open data-playlist-id="7Jl6mYKQ1mSi2JCk2Qhgfq" aria-label="Play Yara’s Playlist">
+          <polygon class="hotspot" points="1970,801 2139,801 2139,1259 1970,1259"></polygon>
+          <title>Yara’s Playlist</title>
+        </a>
+        <image id="ov-playlist" class="hover-visual" href="assets/overlays/playlist-bright.png" x="1857" y="694" width="407" height="673" />
+      </g>
+
+      <!-- Bag -->
+      <g class="hs hs--bag">
+        <a role="link" tabindex="0" href="#bagModal" data-modal-target="bagModal" aria-label="Open Yara’s Bag — items gallery">
+          <polygon class="hotspot" points="383,1980 827,1980 827,2232 383,2232"></polygon>
+          <title>Yara’s Bag</title>
+        </a>
+        <image id="ov-bag" class="hover-visual" href="assets/overlays/bag-open.png" x="346" y="1875" width="556" height="525" />
+      </g>
+
+      <!-- Journal -->
+      <g class="hs hs--journal">
+        <a role="link" tabindex="0" href="#journalModal" data-modal-target="journalModal" aria-label="Open Yara’s Journal — character cards & gallery">
+          <polygon class="hotspot" points="747,1539 813,1500 886,1561 823,1599"></polygon>
+          <title>Yara’s Journal</title>
+        </a>
+        <image id="ov-journal" class="hover-visual" href="assets/overlays/journal-pop.png" x="687" y="1441" width="260" height="256" />
+      </g>
+
+      <!-- Phone -->
+      <g class="hs hs--phone">
+       <a role="link" tabindex="0" href="#phone" data-bubble-media="phone" aria-label="Open Yara’s Phone — interactive">
+          <polygon class="hotspot" points="1011,1507 1055,1446 1096,1456 1042,1523"></polygon>
+          <title>Yara’s Phone</title>
+        </a>
+        <image id="ov-phone" class="hover-visual" href="assets/overlays/phone-on.png" x="911" y="1359" width="295" height="244" />
+      </g>
+
+      <!-- Mirror (thought bubble) -->
+      <g class="hs hs--mirror">
+        <a role="link" tabindex="0" href="#mirror" data-bubble-target="mirror" aria-label="Yara’s Mirror — faint memory">
+          <polygon class="hotspot" points="1055,760 1138,1367 1160,1418 1402,1316 1338,645"></polygon>
+          <title>Yara’s Mirror — Faint Memory</title>
+        </a>
+        <image id="ov-mirror" class="hover-visual" href="assets/overlays/mirror-bright.png" x="1026" y="617" width="468" height="893" />
+      </g>
+
+      <!-- Secrets -->
+      <g class="hs hs--secret">
+        <a role="link" tabindex="0" href="#secretsModal" data-modal-target="secretsModal" aria-label="Yara’s SECRET Folder — 18+">
+          <polygon class="hotspot" points="3125,2012 3129,1977 3249,1904 3272,1990"></polygon>
+          <title>SECRET Folder — 18+</title>
+        </a>
+        <image id="ov-secret" class="hover-visual" href="assets/overlays/secret-peek.png" x="2960" y="1804" width="479" height="344" />
+      </g>
+
+      <!-- Armoire -->
+      <g class="hs hs--armoire">
+        <a role="link" tabindex="0" href="#armoireModal" data-modal-target="armoireModal" aria-label="Yara’s Armoire — full-body art & chibis">
+          <polygon class="hotspot" points="3358,1907 3472,1469 3596,1392 3593,2057"></polygon>
+          <title>Yara’s Armoire</title>
+        </a>
+        <image id="ov-armoire" class="hover-visual" href="assets/overlays/armoire-ajar.png" x="3136" y="1215" width="464" height="960" />
+      </g>
+
+      <!-- Research: Ghouls -->
+      <g class="hs hs--research-ghouls">
+        <a role="link" tabindex="0" href="#researchGhoulsModal" data-modal-target="researchGhoulsModal" aria-label="Yara’s Research — Ghouls">
+          <polygon class="hotspot" points="37,1752 2,1621 44,1615 117,1774 85,1783"></polygon>
+          <title>Lore — Ghouls</title>
+        </a>
+        <image id="ov-ghouls" class="hover-visual" href="assets/overlays/ghoulbinder-bright.png" x="0" y="1610" width="126" height="191" />
+      </g>
+
+      <!-- Research: Self -->
+      <g class="hs hs--research-self">
+        <a role="link" tabindex="0" href="#researchSelfModal" data-modal-target="researchSelfModal" aria-label="Yara’s Research — Self (Lore)">
+          <polygon class="hotspot" points="72,1647 85,1608 139,1685 139,1780 114,1764"></polygon>
+          <title>Lore — Self</title>
+        </a>
+        <image id="ov-self" class="hover-visual" href="assets/overlays/yarabinder-bright.png" x="54" y="1603" width="108" height="182" />
+      </g>
+
+      <!-- Research: AII -->
+      <g class="hs hs--research-aii">
+        <a role="link" tabindex="0" href="#researchAIIModal" data-modal-target="researchAIIModal" aria-label="Yara’s Research — AII">
+          <polygon class="hotspot" points="158,1755 180,1752 161,1612 126,1577 95,1593 145,1663"></polygon>
+          <title>Lore — AII</title>
+        </a>
+        <image id="ov-aii" class="hover-visual" href="assets/overlays/aiibinder-bright.png" x="95" y="1570" width="100" height="201" />
+      </g>
+
+      <!-- Window (thought bubble) -->
+      <g class="hs hs--window">
+        <a role="link" tabindex="0" href="#window" data-bubble-target="window" aria-label="Yara’s Window — thought">
+          <polygon class="hotspot" points="1356,204 1982,13 1969,1053 1432,1251"></polygon>
+          <title>Yara’s Window</title>
+        </a>
+        <image id="ov-window" class="hover-visual" href="assets/overlays/window-bright.png" x="1252" y="0" width="865" height="1388" />
+      </g>
+
+      <!-- Bed (thought bubble) -->
+      <g class="hs hs--bed">
+        <a role="link" tabindex="0" href="#bed" data-bubble-target="bed" aria-label="Yara’s Bed — thought">
+          <polygon class="hotspot" points="2077,1767 2685,2208 3311,1678 2769,1385 2423,1563"></polygon>
+          <title>Yara’s Bed</title>
+        </a>
+        <image id="ov-bed" class="hover-visual" href="assets/overlays/bed-bright.png" x="1870" y="1065" width="1730" height="1336" />
+      </g>
+
+      <!-- Notes -->
+      <g class="hs hs--notes">
+        <a role="link" tabindex="0" href="#notesModal" data-modal-target="notesModal" aria-label="Yara’s Notes on Maiden’s Grief">
+          <polygon class="hotspot" points="499,1672 550,1602 601,1615 665,1647 601,1711"></polygon>
+          <title>Notes — Currently Studying</title>
+        </a>
+        <image id="ov-notes" class="hover-visual" href="assets/overlays/notes-bright.png" x="476" y="1574" width="230" height="172" />
+      </g>
+
+      <!-- Garbage -->
+      <g class="hs hs--garbage">
+        <a role="link" tabindex="0" href="#garbageModal" data-modal-target="garbageModal" aria-label="Yara’s Garbage — crumpled notes gallery">
+          <polygon class="hotspot" points="384,1960 460,1966 473,1877 422,1838 358,1870"></polygon>
+          <title>Yara’s Garbage</title>
+        </a>
+        <image id="ov-garbage" class="hover-visual" href="assets/overlays/garbage-bright.png" x="335" y="1828" width="167" height="178" />
+      </g>
+
+      <!-- ID card -->
+      <g class="hs hs--idcard">
+        <a role="link" tabindex="0" href="#id" data-bubble-media="id" aria-label="Yara’s Student ID (nightstand)">
+          <polygon class="hotspot" points="2463,1294 2472,1320 2530,1304 2523,1281"></polygon>
+          <title>Yara’s ID</title>
+        </a>
+        <image id="ov-idcard" class="hover-visual" href="assets/overlays/idcard-bright.png" x="2436" y="1257" width="170" height="120" style="outline-color: rgb(255, 213, 74);"></image>
+      </g>
+    </svg>
+
+    <footer class="dev-only">
+      Everything scales inside one SVG (3600×2400). Toggle <strong>Debug</strong> to see hitboxes; <strong>Position Overlays</strong> to fine-tune.
+    </footer>
+  </div>
+
+  <!-- =========================================
+       MODALS (div-based)
+       Click outside closes.
+       Esc closes.
+       Iframes fit properly.
+       No phantom dialog backdrops.
+       ========================================= -->
+
+  <div id="journalModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s Journal">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="journal.html" title="Journal" loading="lazy"
+            allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="phoneModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s Phone">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--phone">
+          <iframe src="phone.html" title="Phone" loading="lazy" scrolling="no"
+            allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="researchGhoulsModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — Ghouls">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="binder.html?book=ghouls" title="Ghoul Binder" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="researchSelfModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — Self">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="binder.html?book=self" title="Self Research Binder" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="researchAIIModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — AII">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="binder.html?book=aii" title="AII Binder" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bagModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s Bag">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="bag.html" title="Bag" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="armoireModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s Armoire">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="armoire.html" title="Armoire" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="secretsModal" class="modal" role="dialog" aria-modal="true" aria-label="Secrets — 18+">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="secrets.html" title="Secrets" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="garbageModal" class="modal" role="dialog" aria-modal="true" aria-label="Garbage — Notes Gallery">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="notes.html" title="Crumpled Notes" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notesModal" class="modal" role="dialog" aria-modal="true" aria-label="Desk Notes">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide">
+          <iframe class="js-autofit" src="desknotes.html" title="Desk Notes" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="idcardModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s ID Card">
+    <div class="modal__panel" data-tail="bottom">
+      <div class="modal__bar">
+        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="frame-shell frame-shell--wide" style="align-items:center; justify-content:center;">
+          <div style="width:100%; height:100%; display:grid; place-items:center; padding:12px; box-sizing:border-box;">
+            <img src="assets/notes/yara-id.png" alt="Yara’s ID card"
+              style="
+                max-width: min(760px, 100%);
+                max-height: 100%;
+                height:auto; width:auto;
+                display:block;
+                border-radius:12px;
+                border:1px solid rgba(42,49,71,.85);
+                box-shadow:0 10px 30px rgba(0,0,0,.45);
+              ">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================
+       SCRIPTS
+       ========================================= -->
+
+  <!-- Dev mode guard -->
+  <script>
+  (function () {
+    const body = document.body;
+    const qs = new URLSearchParams(location.search);
+    const DEV_TOKEN = 'moonlit-tide';
+
+    const isLocalhost = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname);
+    const hasSecretQS = qs.get('dev') === DEV_TOKEN;
+    const priorSession = sessionStorage.getItem('dev') === '1';
+    const wantDev = isLocalhost || hasSecretQS || priorSession;
+
+    function wireDevControls() {
+      const dbgBtn = document.getElementById('toggleDebug');
+      const posBtn = document.getElementById('posMode');
+
+      if (dbgBtn && !dbgBtn._wired) {
+        dbgBtn.addEventListener('click', () => body.classList.toggle('debug'));
+        dbgBtn._wired = true;
+      }
+      if (posBtn && !posBtn._wired) posBtn._wired = true;
+    }
+
+    function setDev(on) {
+      body.classList.toggle('dev', on);
+      if (!on) body.classList.remove('debug', 'pos-mode');
+      sessionStorage.setItem('dev', on ? '1' : '0');
+      if (on) wireDevControls();
+      document.dispatchEvent(new CustomEvent('devmode:changed', { detail: { on } }));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => setDev(!!wantDev));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.shiftKey && e.altKey && e.code === 'KeyD') {
+        e.preventDefault();
+        setDev(!body.classList.contains('dev'));
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!body.classList.contains('dev')) return;
+      const isToggle = (e.ctrlKey || e.metaKey) && e.key === '`';
+      if (!isToggle) return;
+      e.preventDefault();
+      setDev(!body.classList.contains('dev'));
+    });
+  })();
+  </script>
+
+  <script>
+  // ===== Rotating entries (quote + portrait) =====
+  const mirrorEntries = [
+    { text: "I don't feel real, sometimes. That's... like, normal, right? Like sometimes, the person that I look at in the mirror... isn't actually here...", img: "assets/ui/Yara_Confused.png", alt: "Yara, uncertain" },
+    { text: "I pass by mirrors sometimes and swear I see my mother. Other days, it's my dad... I know it's because, you know, genetics, but... I really miss them.", img: "assets/ui/Yara_Blushing_Embarassed.png", alt: "Yara, thinking" },
+    { text: "Tohma says I should at least wear a tie. I personally feel like I'm drowning when I wear one, but, whatever. He's letting me wear the pants, at least...", img: "assets/ui/Yara_Ghast.png", alt: "Gah" },
+    { text: "Brush your hair, you look like a stray fuckin' dog, he says... Son of a bitch..!", img: "assets/ui/Yara_Mad.png", alt: "Yara, angry" },
+    { text: "Man. I look like shit. I shouldn't stay up too late today...", img: "assets/ui/Yara_Dead.png", alt: "Yara, tired" },
+    { text: "There's a faint glow on my chest, the spot where Maiden's Grief comes out of... It's hot to touch.", img: "assets/ui/Yara_Confused.png", alt: "Yara, thinking" },
+    { text: "Sometimes, I look away from the mirror and still feel like my reflection is looking back at me... Spooky, right?", img: "assets/ui/Yara_Confused.png", alt: "Yara, thinking" }
+  ];
+
+  const windowEntries = [
+    { text: "It's always snowing in Frostheim. A perpetual winter. It's freezing, but the cold air wafting through the window makes me feel alive.", img: "assets/ui/Yara_Flowers.png", alt: "Yara, pleased" },
+    { text: "So much for trying to quit smoking... I think someome's smoking on the balcony near my window... Smells familiar...", img: "assets/ui/yara-portrait.png", alt: "Yara, smelling smoke" },
+    { text: "I think I just heard Kamurai tell Tohma to fuck off. Wait... Is that Kamurai with Ishibashi on the balcony a floor above?", img: "assets/ui/Yara_Confused.png", alt: "Yara listening" },
+    { text: "From here, I've got a perfect view of Sho's food truck... You know, so I can scope the line if it's long or not of course!", img: "assets/ui/Yara_Blushing_Happy.png", alt: "Yara watching street" }
+  ];
+
+  const bedEntries = [
+    { text: "Ever since coming to Darkwick, the Whispering has only gotten louder. I still can't remember the name it told me to call it...", img: "assets/ui/Yara_Confused.png", alt: "Yara in bed, listening" },
+    { text: "One day, I just woke up and realized I don't remember things from my childhood. It's strange, do they have a name for that feeling?", img: "assets/ui/Yara_Confused.png", alt: "Yara, lost memory" },
+    { text: "I should really sleep... Not yet. I've gotta figure out this formula...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara, late-night thinking" },
+    { text: "... Hah...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara, half-smile" },
+    { text: "... Stell...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara, flat" },
+    { text: "... Heu...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara murmurs" },
+    { text: "... Est...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara murmurs" },
+    { text: "... iah...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara sighs" },
+    { text: "...Elle...", img: "assets/ui/Yara_Sleepy.png", alt: "Yara sighs" },
+    { text: "I can't... fucking sleep... Nothing new...", img: "assets/ui/yara-portrait.png", alt: "Yara, insomniac" },
+    { text: "I still dream of a blue ocean and a silver sky, just like when I was a kid...", img: "assets/ui/Yara_Confused.png", alt: "Yara dreaming" }
+  ];
+
+  /* =========================================
+     THOUGHT BUBBLE ANCHORING (Mirror/Window/Bed)
+     ========================================= */
+  (function () {
+    const pop   = document.getElementById('thoughtPop');
+    const imgEl = document.getElementById('thoughtImg');
+    const txtEl = document.getElementById('thoughtText');
+    const close = document.getElementById('thoughtClose');
+    const svg   = document.querySelector('svg.stage');
+    if (!pop || !imgEl || !txtEl || !svg) return;
+
+    const bubbleTargets = new Map([
+      ['mirror', mirrorEntries],
+      ['window', windowEntries],
+      ['bed',    bedEntries]
+    ]);
+
+    function pickEntry(entries){
+      const pick = entries[Math.floor(Math.random() * entries.length)];
+      return {
+        text: pick.text || "…",
+        img:  pick.img  || imgEl.getAttribute('src'),
+        alt:  pick.alt  || "Portrait"
+      };
+    }
+
+    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+    function getScreenRectForSvgElement(el){
+      const bbox = el.getBBox();
+      const ctm  = el.getScreenCTM();
+      if (!ctm) return null;
+
+      const pt = svg.createSVGPoint();
+      const corners = [
+        {x: bbox.x, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y + bbox.height},
+        {x: bbox.x, y: bbox.y + bbox.height}
+      ].map(p => {
+        pt.x = p.x; pt.y = p.y;
+        const sp = pt.matrixTransform(ctm);
+        return {x: sp.x, y: sp.y};
+      });
+
+      const xs = corners.map(c => c.x);
+      const ys = corners.map(c => c.y);
+      const left = Math.min(...xs), right = Math.max(...xs);
+      const top  = Math.min(...ys), bottom= Math.max(...ys);
+      return { left, top, right, bottom, width: right-left, height: bottom-top };
+    }
+
+    function openBubble({entries, anchorEl}){
+      const {text, img, alt} = pickEntry(entries);
+      txtEl.innerHTML = `<em>“${text}”</em>`;
+      imgEl.src = img;
+      imgEl.alt = alt;
+
+      const poly = anchorEl.querySelector('.hotspot');
+      const rect = poly ? getScreenRectForSvgElement(poly) : anchorEl.getBoundingClientRect();
+      if (!rect) return;
+
+      pop.classList.add('open');
+
+      const bubble = pop.querySelector('.bubble');
+      const bw = bubble.offsetWidth;
+      const bh = bubble.offsetHeight;
+
+      const cx = rect.left + rect.width/2;
+      const topY = rect.top;
+
+      const x = clamp(cx, 12 + bw/2, window.innerWidth - 12 - bw/2);
+      const y = clamp(topY - 12, bh + 12, window.innerHeight - 12);
+
+      pop.style.left = `${x}px`;
+      pop.style.top  = `${y}px`;
+
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+      anchorEl.closest('.hs')?.classList.add('active');
+    }
+
+    function closeBubble(){
+      pop.classList.remove('open');
+      pop.style.left = '';
+      pop.style.top  = '';
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+    }
+
+    close.addEventListener('click', closeBubble);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pop.classList.contains('open')) closeBubble();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!pop.classList.contains('open')) return;
+      if (e.target.closest('#thoughtPop')) return;
+      closeBubble();
+    });
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-bubble-target]');
+      if (!a) return;
+
+      const key = a.getAttribute('data-bubble-target');
+      const entries = bubbleTargets.get(key);
+      if (!entries) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openBubble({ entries, anchorEl: a });
+      a.blur?.();
+    });
+
+    window.addEventListener('resize', () => {
+      if (pop.classList.contains('open')) closeBubble();
+    }, { passive:true });
+  })();
+  </script>
+
+  <script>
+  /* Auto-fit iframe height to its content (same-origin only) */
+  (function(){
+    function fit(frame){
+      try{
+        const doc = frame.contentDocument;
+        if (!doc) return;
+
+        const h = Math.max(
+          doc.documentElement.scrollHeight,
+          doc.body ? doc.body.scrollHeight : 0
+        );
+
+        const maxH = Math.floor(window.innerHeight * 0.86);
+        const minH = Math.floor(window.innerHeight * 0.55);
+
+        frame.style.height = Math.max(minH, Math.min(h, maxH)) + 'px';
+      }catch(_){}
+    }
+
+    function wire(frame){
+      if (frame._wired) return;
+      frame._wired = true;
+      frame.addEventListener('load', () => fit(frame));
+    }
+
+    window.addEventListener('load', () => {
+      document.querySelectorAll('iframe.js-autofit').forEach(wire);
+    });
+
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('iframe.js-autofit').forEach(fit);
+    }, { passive:true });
+  })();
+  </script>
+
+  <script>
+  // ===== Anchored Modal open/close (DIV modals) =====
+  (function(){
+    const svg = document.querySelector('svg.stage');
+
+    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+    function getScreenRectForSvgElement(el){
+      if (!svg || !el.getBBox || !svg.createSVGPoint) return null;
+      const bbox = el.getBBox();
+      const ctm  = el.getScreenCTM();
+      if (!ctm) return null;
+
+      const pt = svg.createSVGPoint();
+      const corners = [
+        {x:bbox.x, y:bbox.y},
+        {x:bbox.x+bbox.width, y:bbox.y},
+        {x:bbox.x+bbox.width, y:bbox.y+bbox.height},
+        {x:bbox.x, y:bbox.y+bbox.height}
+      ].map(p=>{
+        pt.x=p.x; pt.y=p.y;
+        const sp = pt.matrixTransform(ctm);
+        return {x:sp.x, y:sp.y};
+      });
+
+      const xs = corners.map(c=>c.x), ys = corners.map(c=>c.y);
+      const left = Math.min(...xs), right = Math.max(...xs);
+      const top  = Math.min(...ys), bottom= Math.max(...ys);
+      return { left, top, right, bottom, width:right-left, height:bottom-top };
+    }
+
+    function measurePanel(panel){
+      // Ensure measurable without flicker
+      const prevVis = panel.style.visibility;
+      const prevLeft = panel.style.left;
+      const prevTop  = panel.style.top;
+      const prevTf   = panel.style.transform;
+
+      panel.style.visibility = 'hidden';
+      panel.style.left = '50%';
+      panel.style.top  = '50%';
+      panel.style.transform = 'translate(-50%, -50%)';
+
+      // force layout
+      const w = panel.offsetWidth;
+      const h = panel.offsetHeight;
+
+      panel.style.visibility = prevVis;
+      panel.style.left = prevLeft;
+      panel.style.top  = prevTop;
+      panel.style.transform = prevTf;
+
+      return { w, h };
+    }
+
+    function positionPanel(modal, opener){
+      const panel = modal.querySelector('.modal__panel');
+      if (!panel) return;
+
+      const poly = opener?.querySelector?.('.hotspot');
+      const rect = poly ? getScreenRectForSvgElement(poly) : opener?.getBoundingClientRect?.();
+      if (!rect) return;
+
+      const { w:pw, h:ph } = measurePanel(panel);
+
+      const cx = rect.left + rect.width/2;
+
+      // Prefer above, otherwise below
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+
+      let x = clamp(cx, 12 + pw/2, window.innerWidth - 12 - pw/2);
+      let y;
+      let tail;
+
+      if (spaceAbove >= ph + 18) {
+        // above
+        y = rect.top - 12;
+        panel.style.transform = 'translate(-50%, -100%)';
+        tail = 'bottom';
+      } else if (spaceBelow >= ph + 18) {
+        // below
+        y = rect.bottom + 12;
+        panel.style.transform = 'translate(-50%, 0)';
+        tail = 'top';
+      } else {
+        // fallback: center
+        x = window.innerWidth/2;
+        y = window.innerHeight/2;
+        panel.style.transform = 'translate(-50%, -50%)';
+        tail = 'bottom';
+      }
+
+      // Tail offset inside bubble (relative to panel)
+      const tailX = clamp(cx - (x - pw/2), 24, pw - 24);
+      panel.style.setProperty('--tail-offset', `${tailX}px`);
+      panel.setAttribute('data-tail', tail);
+
+      panel.style.left = `${x}px`;
+      panel.style.top  = `${y}px`;
+    }
+
+    function openModal(modal, opener){
+      // close any other open modal first
+      document.querySelectorAll('.modal.open').forEach(m => closeModal(m));
+
+      modal.classList.add('open');
+      document.body.classList.add('modal-open');
+
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+      opener?.closest?.('.hs')?.classList.add('active');
+
+      modal._anchorOpener = opener || null;
+      positionPanel(modal, opener);
+
+      // re-anchor after iframe loads (width/height changes)
+      modal.querySelectorAll('iframe').forEach(fr=>{
+        fr.addEventListener('load', ()=> {
+          if (modal.classList.contains('open') && modal._anchorOpener) {
+            positionPanel(modal, modal._anchorOpener);
+          }
+        }, { once:false });
+      });
+
+      // focus close for keyboard sanity
+      modal.querySelector('[data-modal-close]')?.focus?.();
+    }
+
+    function closeModal(modal){
+      modal.classList.remove('open');
+      modal._anchorOpener = null;
+      document.body.classList.remove('modal-open');
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+    }
+
+    // Open by hotspot
+    document.addEventListener('click', (e) => {
+      const openBtn = e.target.closest('[data-modal-target]');
+      if (!openBtn) return;
+
+      e.preventDefault();
+      const id = openBtn.getAttribute('data-modal-target');
+      const modal = document.getElementById(id);
+      if (!modal) return;
+
+      openModal(modal, openBtn);
+      openBtn.blur?.();
+    });
+
+    // Close button
+    document.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('[data-modal-close]');
+      if (!closeBtn) return;
+      const modal = closeBtn.closest('.modal');
+      if (modal) closeModal(modal);
+    });
+
+    // Click OUTSIDE (backdrop) closes
+    document.addEventListener('click', (e) => {
+      const modal = e.target.classList?.contains('modal') ? e.target : null;
+      if (modal && modal.classList.contains('open')) closeModal(modal);
+    });
+
+    // Esc closes topmost
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const modal = document.querySelector('.modal.open');
+      if (modal) closeModal(modal);
+    });
+
+    // Reposition on resize
+    window.addEventListener('resize', () => {
+      const modal = document.querySelector('.modal.open');
+      if (!modal || !modal._anchorOpener) return;
+      positionPanel(modal, modal._anchorOpener);
+    }, { passive:true });
+
+    // Preload overlays
+    const preload = [
+      'assets/overlays/bag-open.png','assets/overlays/journal-pop.png','assets/overlays/phone-on.png',
+      'assets/overlays/secret-peek.png','assets/overlays/armoire-ajar.png','assets/overlays/aiibinder-bright.png',
+      'assets/overlays/ghoulbinder-bright.png','assets/overlays/yarabinder-bright.png','assets/overlays/playlist-bright.png',
+      'assets/overlays/mirror-bright.png','assets/overlays/window-bright.png','assets/overlays/bed-bright.png',
+      'assets/overlays/garbage-bright.png','assets/overlays/notes-bright.png','assets/overlays/idcard-bright.png',
+      'assets/ui/yara-portrait.png'
+    ];
+    preload.forEach(src => { const i = new Image(); i.src = src; });
+  })();
+  </script>
+
+  <script>
+  /* ---- Overlay Positioning Mode ---- */
+  (function () {
+    const svg = document.querySelector('svg.stage');
+    const btn = document.getElementById('posMode');
+    if (!svg || !btn) return;
+
+    const hud = document.createElement('div');
+    hud.className = 'pos-hud';
+    hud.style.display = 'none';
+    hud.innerHTML = `
+      <div><strong>Overlay:</strong> <span id="ovName">—</span></div>
+      <div><strong>x</strong>=<code id="ovX">0</code> <strong>y</strong>=<code id="ovY">0</code>
+          <strong>w</strong>=<code id="ovW">0</code> <strong>h</strong>=<code id="ovH">0</code>
+          <button id="ovCopy" class="btn" type="button">Copy &lt;image&gt;</button>
+      </div>
+      <div style="opacity:.75;margin-top:6px">Arrows = 1px • Shift+Arrows = 10px • Click another overlay to switch</div>
+    `;
+    document.body.appendChild(hud);
+
+    const ovName = hud.querySelector('#ovName');
+    const ovX = hud.querySelector('#ovX');
+    const ovY = hud.querySelector('#ovY');
+    const ovW = hud.querySelector('#ovW');
+    const ovH = hud.querySelector('#ovH');
+
+    let posMode = false, sel = null, dragging = false, start = null, startXY = null;
+    const overlays = Array.from(document.querySelectorAll('image.hover-visual'));
+
+    function setHUD(el){
+      if (!el) return;
+      ovName.textContent = el.id || '(no id)';
+      ovX.textContent = el.getAttribute('x');
+      ovY.textContent = el.getAttribute('y');
+      ovW.textContent = el.getAttribute('width');
+      ovH.textContent = el.getAttribute('height');
+    }
+    function select(el){
+      if (!el) return;
+      sel = el;
+      overlays.forEach(o => o.style.outlineColor = (o === sel ? '#ffd54a' : '#7ad'));
+      setHUD(sel);
+    }
+    function shiftPolygonPoints(hs, dx, dy){
+      if (!hs || hs.tagName.toLowerCase() !== 'polygon') return;
+      const pts = hs.getAttribute('points').trim().split(/\s+/).map(p=>{
+        const [x,y] = p.split(',').map(Number);
+        return (x+dx)+','+(y+dy);
+      });
+      hs.setAttribute('points', pts.join(' '));
+    }
+    function nudge(dx, dy){
+      if (!sel) return;
+      const x = parseFloat(sel.getAttribute('x')) + dx;
+      const y = parseFloat(sel.getAttribute('y')) + dy;
+      sel.setAttribute('x', x);
+      sel.setAttribute('y', y);
+
+      const hs = sel.previousElementSibling?.querySelector?.('.hotspot');
+      if (hs) shiftPolygonPoints(hs, dx, dy);
+
+      setHUD(sel);
+    }
+
+    function onDown(e){
+      if (!posMode || !document.body.classList.contains('dev')) return;
+      const target = e.target.closest('image.hover-visual');
+      if (!target) return;
+      dragging = true;
+      select(target);
+      start = { clientX: e.clientX, clientY: e.clientY };
+      startXY = { x: parseFloat(sel.getAttribute('x')), y: parseFloat(sel.getAttribute('y')) };
+      e.preventDefault();
+    }
+    function onMove(e){
+      if (!dragging || !sel) return;
+      const dx = e.clientX - start.clientX;
+      const dy = e.clientY - start.clientY;
+      const nx = Math.round(startXY.x + dx);
+      const ny = Math.round(startXY.y + dy);
+      sel.setAttribute('x', nx);
+      sel.setAttribute('y', ny);
+
+      const hs = sel.previousElementSibling?.querySelector?.('.hotspot');
+      if (hs) {
+        shiftPolygonPoints(hs, dx, dy);
+        start = { clientX: e.clientX, clientY: e.clientY };
+        startXY = { x: nx, y: ny };
+      }
+
+      setHUD(sel);
+    }
+    function onUp(){ dragging = false; }
+
+    function enablePosModeUI(on){
+      document.body.classList.toggle('pos-mode', on);
+      hud.style.display = on ? 'block' : 'none';
+      if (on) {
+        select(sel || overlays[0]);
+        svg.addEventListener('mousedown', onDown);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      } else {
+        svg.removeEventListener('mousedown', onDown);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        overlays.forEach(o => o.style.outlineColor = '#7ad');
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (!document.body.classList.contains('dev')) return;
+      posMode = !posMode;
+      enablePosModeUI(posMode);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!document.body.classList.contains('dev') || !posMode) return;
+      const step = e.shiftKey ? 10 : 1;
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        if (e.key==='ArrowLeft')  nudge(-step,0);
+        if (e.key==='ArrowRight') nudge( step,0);
+        if (e.key==='ArrowUp')    nudge(0,-step);
+        if (e.key==='ArrowDown')  nudge(0, step);
+      }
+    });
+
+    hud.addEventListener('click', (e)=>{
+      if (e.target.id !== 'ovCopy' || !sel) return;
+      navigator.clipboard.writeText(sel.outerHTML).then(()=>{
+        e.target.textContent = 'Copied!';
+        setTimeout(()=> e.target.textContent = 'Copy <image>', 900);
+      });
+    });
+
+    document.addEventListener('click', (e)=>{
+      if (!posMode || !document.body.classList.contains('dev')) return;
+      const img = e.target.closest('image.hover-visual');
+      if (img) { select(img); e.preventDefault(); }
+    });
+
+    document.addEventListener('devmode:changed', (e) => {
+      if (!e.detail?.on && posMode) { posMode = false; enablePosModeUI(false); }
+    });
+  })();
+  </script>
+
+
+
+  <!-- Spotify mini player -->
+  <div class="music-panel" id="musicPanel" role="dialog" aria-modal="false" aria-label="Spotify player">
+    <header>
+      <span>Now Playing • Spotify</span>
+      <button class="music-close" id="musicClose" type="button" aria-label="Close">✕</button>
+    </header>
+    <iframe class="music-embed" id="musicFrame"
+      title="Spotify"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      src="">
+    </iframe>
+  </div>
+
+  <script>
+  (function(){
+    const panel  = document.getElementById('musicPanel');
+    const frame  = document.getElementById('musicFrame');
+    const closeB = document.getElementById('musicClose');
+
+    function srcFor(id){
+      return `https://open.spotify.com/embed/playlist/${id}?utm_source=generator&theme=0`;
+    }
+    function openMusic(id){
+      const want = srcFor(id);
+      if (frame.src !== want) frame.src = want;
+      panel.classList.add('open');
+    }
+    function closeMusic(){
+      panel.classList.remove('open');
+      frame.src = '';
+    }
+    closeB.addEventListener('click', closeMusic);
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape' && panel.classList.contains('open')) closeMusic();
+    });
+    document.addEventListener('click', (e)=>{
+      const a = e.target.closest('[data-music-open]');
+      if (!a) return;
+      e.preventDefault();
+      const pid = a.getAttribute('data-playlist-id') || '';
+      if (pid) openMusic(pid);
+    });
+  })();
+  </script>
+
+<!-- BARE anchored bubbles -->
+<div id="idBubble" class="bubbleModal bubbleModal--bare" style="display:none">
+  <div class="bubbleMedia">
+    <img src="assets/notes/yara-id.png" alt="Yara’s ID card">
+  </div>
+</div>
+
+<div id="phoneBubble" class="bubbleModal bubbleModal--bare" style="display:none">
+  <div class="bubbleMedia">
+    <iframe src="phone.html" title="Phone" loading="lazy" scrolling="no"
+      allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
+  </div>
+</div>
+  <script>
+(function(){
+  const svg = document.querySelector('svg.stage');
+  const idBubble = document.getElementById('idBubble');
+  const phoneBubble = document.getElementById('phoneBubble');
+
+  if (!svg || !idBubble || !phoneBubble) return;
+
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  function getScreenRectForSvgElement(el){
+    const bbox = el.getBBox();
+    const ctm  = el.getScreenCTM();
+    if (!ctm) return null;
+
+    const pt = svg.createSVGPoint();
+    const corners = [
+      {x: bbox.x, y: bbox.y},
+      {x: bbox.x + bbox.width, y: bbox.y},
+      {x: bbox.x + bbox.width, y: bbox.y + bbox.height},
+      {x: bbox.x, y: bbox.y + bbox.height}
+    ].map(p => {
+      pt.x = p.x; pt.y = p.y;
+      const sp = pt.matrixTransform(ctm);
+      return {x: sp.x, y: sp.y};
+    });
+
+    const xs = corners.map(c => c.x);
+    const ys = corners.map(c => c.y);
+    const left = Math.min(...xs), right = Math.max(...xs);
+    const top  = Math.min(...ys), bottom= Math.max(...ys);
+    return { left, top, right, bottom, width: right-left, height: bottom-top };
+  }
+
+  function hideBubbles(){
+    idBubble.style.display = 'none';
+    phoneBubble.style.display = 'none';
+  }
+
+  function openAnchoredBubble({ anchorA, bubbleEl, offsetY = 18 }){
+    // show to measure
+    bubbleEl.style.display = 'block';
+
+    const poly = anchorA.querySelector('.hotspot');
+    const rect = poly ? getScreenRectForSvgElement(poly) : anchorA.getBoundingClientRect();
+    if (!rect) return;
+
+    const b = bubbleEl.getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    const anchorY = rect.top;
+
+    let left = anchorX - b.width / 2;
+    let top  = anchorY - b.height - offsetY;
+
+    const pad = 12;
+    left = clamp(left, pad, window.innerWidth  - b.width  - pad);
+    top  = clamp(top,  pad, window.innerHeight - b.height - pad);
+
+    bubbleEl.style.left = `${left}px`;
+    bubbleEl.style.top  = `${top}px`;
+
+    // arrow variable (you can ignore since we’re "bare", but harmless)
+    bubbleEl.style.setProperty('--arrow-x', `${anchorX - left}px`);
+  }
+
+  // One handler for any media bubble hotspot
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-bubble-media]');
+    if (!a) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const type = a.getAttribute('data-bubble-media');
+
+    hideBubbles();
+    if (type === 'id')    openAnchoredBubble({ anchorA: a, bubbleEl: idBubble, offsetY: 20 });
+    if (type === 'phone') openAnchoredBubble({ anchorA: a, bubbleEl: phoneBubble, offsetY: 20 });
+
+    a.blur?.();
+  });
+
+  // close on outside click
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#idBubble') || e.target.closest('#phoneBubble')) return;
+    hideBubbles();
+  });
+
+  // esc closes
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideBubbles();
+  });
+
+  // resize closes (prevents drift)
+  window.addEventListener('resize', hideBubbles, { passive:true });
+})();
+</script>
+
+</body>
+</html>

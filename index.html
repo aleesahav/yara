@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Whispering Tides — Entry</title>
+<meta name="theme-color" content="#0b0b0d" />
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --ink:#eaeaea;
+    --muted:#a3a9b8;
+    --accent:#ffd54a;
+    --line:#232739;
+
+    --shadow: 0 12px 48px rgba(0,0,0,.55);
+
+    /* Card sizing */
+    --cardW: min(1500px, 90vw);
+    --leftCol: 52%;
+    --rightCol: 48%;
+
+    /* Sprite tuning */
+    /* Center the sprite in the RIGHT column: leftCol + (rightCol/2) = 52% + 24% = 76% */
+    --spriteX: 72%;
+    --spriteY: 45%;
+    --spriteScale: 1.1;
+
+    /* how far the sprite may "bleed" out (top/left/right only) */
+    --bleed: 520px;
+
+    /* VN + Quote placement */
+    --btnLeft: calc(var(--leftCol) - 300px);
+    --btnBottom: 50px;
+
+    --quoteLeft: calc(var(--leftCol) - 0px);
+    --quoteBottom: 26px;
+
+    --quoteMax: 40ch;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ margin:0; height:100%; background:transparent; }
+  body{
+    margin:0;
+    min-height:100%;
+    background:transparent;
+    color:var(--ink);
+    font:16px/1.6 "Merriweather", Georgia, "Times New Roman", serif;
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    background:var(--bg) url("assets/wt_bg.png") no-repeat center/cover;
+  }
+
+  .wrap{ min-height:100svh; display:grid; grid-template-rows:auto 1fr auto; }
+  .logo{ display:grid; place-items:center; padding:clamp(12px,3vw,24px) 0 0; }
+  .logo img{
+    width:min(460px,56vw);
+    height:auto;
+    display:block;
+    filter:drop-shadow(0 10px 30px rgba(0,0,0,.45));
+  }
+
+  .stage{
+    position:relative;
+    display:grid;
+    place-items:center;
+    padding:clamp(16px,4vw,40px);
+  }
+
+  /* ===== CARD ===== */
+  .card{
+    position:relative;
+    isolation:isolate;
+    width:var(--cardW);
+    aspect-ratio:3/2;
+    border-radius:14px;
+
+    overflow: visible;
+    background:none;
+
+    display:grid;
+    grid-template-columns: var(--leftCol) var(--rightCol);
+  }
+
+  /* Inner framed background that clips ONLY background layers */
+  .frame{
+    position:absolute;
+    inset:0;
+    border-radius:14px;
+    overflow:hidden;
+    z-index:1;
+    pointer-events:none;
+
+    background:
+      radial-gradient(110% 90% at 30% 20%, rgba(255,255,255,.05), rgba(255,255,255,0) 60%),
+      linear-gradient(90deg, rgba(0,0,0,.40) 0%, rgba(0,0,0,.40) 100%),
+      url("assets/yara_bgpanel.png") center/100% 100% no-repeat;
+
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+
+  /* Gold trim */
+  .frame::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:14px;
+    border:1px solid rgba(255, 236, 175, 0.65);
+    z-index:60;
+    pointer-events:none;
+  }
+
+  /* ===== SPRITE LAYER ===== */
+  .art{
+    position:absolute;
+    inset:0;
+    z-index:6;
+    pointer-events:none;
+    overflow:visible;
+
+    /* bleed out on 3 sides, clamp bottom at 0 */
+    clip-path: inset(
+      calc(-1 * var(--bleed))
+      calc(-1 * var(--bleed))
+      0
+      calc(-1 * var(--bleed))
+      round 14px
+    );
+  }
+
+  .sprite{
+    position:absolute;
+    left:var(--spriteX);
+    top:var(--spriteY);
+    transform:translate(-50%,-50%) scale(var(--spriteScale));
+    transform-origin:center;
+
+    height:98%;
+    width:auto;
+    max-width:96%;
+    object-fit:contain;
+
+    filter:drop-shadow(0 18px 40px rgba(0,0,0,.55));
+    user-select:none;
+  }
+
+  /* ===== LEFT TEXT ===== */
+  .profileInfo{
+    position:relative;
+    z-index:20;
+    padding:34px 28px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    background:transparent;
+  }
+
+  .headerBlock{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    margin-top:6px;
+  }
+
+  .crestRow img{
+    width:200px;
+    height:200px;
+    object-fit:contain;
+    filter:drop-shadow(0 10px 22px rgba(0,0,0,.55));
+  }
+
+  .name{
+    margin:0;
+    font-weight:800;
+    letter-spacing:.2px;
+    font-size:clamp(34px,3.4vw,61px);
+    line-height:1.05;
+  }
+
+  .divider{
+    width:min(420px, 92%);
+    height:1px;
+    background:linear-gradient(90deg,
+      rgba(255,213,74,0),
+      rgba(255,213,74,.85) 25%,
+      rgba(255,213,74,.85) 75%,
+      rgba(255,213,74,0));
+    border:0;
+    margin:2px 0 0;
+  }
+
+  .byline{
+    margin:0;
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:.65px;
+    text-transform:uppercase;
+  }
+
+  .bio{
+    margin:12px auto 0;
+    width:min(46ch, 100%);
+    color:var(--ink);
+    font-size:clamp(15px,1.25vw,18px);
+    line-height:1.65;
+    text-shadow:0 2px 10px rgba(0,0,0,.55);
+    text-align:left;
+  }
+
+  .stats{
+    margin:12px auto 0;
+    width:min(46ch, 100%);
+    display:grid;
+    gap:8px;
+    font-size:clamp(15px,1.25vw,18px);
+    color:rgba(255,255,255,.92);
+    text-align:left;
+  }
+  .stats .row{ display:flex; gap:10px; }
+  .stats .k{ width:92px; color:rgba(255,213,74,.85); }
+  .stats .v{ color:var(--ink); opacity:.95; }
+
+  /* Buttons: system font */
+  .storyBtn,
+  .enter,
+  .about{
+    font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  }
+
+  /* ===== VN BUTTON ===== */
+  .storyBtn{
+    position:absolute;
+    z-index:70;
+
+    left:var(--btnLeft);
+    bottom:var(--btnBottom);
+
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+
+    padding:14px 18px;
+    border-radius:999px;
+    text-decoration:none;
+
+    color:var(--ink);
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.2px;
+
+    border:1px solid rgba(255,213,74,.55);
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(6px);
+
+    box-shadow:0 10px 22px rgba(0,0,0,.45);
+    transition:transform .18s ease, background .18s ease, border-color .18s ease;
+  }
+  .storyBtn:hover{
+    transform:translateY(-2px);
+    background:rgba(0,0,0,.48);
+    border-color:rgba(255,213,74,.75);
+  }
+  .storyBtn .dot{
+    width:18px;height:18px;border-radius:999px;
+    display:grid;place-items:center;
+    border:1px solid rgba(255,213,74,.55);
+    background:rgba(0,0,0,.45);
+  }
+  .storyBtn svg{ width:11px; height:11px; }
+
+  /* ===== QUOTE ===== */
+  .quote{
+    position:absolute;
+    z-index:65;
+
+    left:var(--quoteLeft);
+    right:clamp(18px,2.2vw,34px);
+    bottom:var(--quoteBottom);
+    max-width:var(--quoteMax);
+
+    background:transparent;
+    border:0;
+    padding:0;
+
+    color:var(--ink);
+    font-size:clamp(24px,3.4vw,42px);
+    font-weight:800;
+    line-height:1.08;
+
+    text-shadow:0 2px 14px rgba(0,0,0,.72),0 6px 24px rgba(0,0,0,.55);
+    text-wrap:balance;
+    hyphens:none;
+
+    opacity:0;
+    clip-path:inset(0 100% 0 0);
+    transition:opacity .5s ease;
+    pointer-events:none;
+  }
+  .quote.show{ opacity:1; animation:sweep .9s ease-out forwards; }
+  @keyframes sweep{
+    from{ clip-path:inset(0 100% 0 0); }
+    to{ clip-path:inset(0 0 0 0); }
+  }
+
+  /* ===== SIDE BUTTONS ===== */
+  .enter{
+    position:absolute;
+    z-index:80;
+    left:calc(50% + (var(--cardW)/2) + 16px);
+    top:50%;
+    transform:translateY(-50%);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    white-space:nowrap;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid var(--accent);
+    background:rgba(255,213,74,.12);
+    color:var(--ink);
+    font-weight:800;
+    font-size:14px;
+    backdrop-filter:blur(3px);
+    transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+  .enter:hover{
+    transform:translateY(-50%) translateX(2px);
+    background:rgba(255,213,74,.2);
+  }
+  .enter svg{ width:18px; height:18px; }
+
+  .about{
+    position:absolute;
+    z-index:80;
+    left:calc(50% - (var(--cardW)/2) - 16px);
+    top:50%;
+    transform:translate(-100%,-50%);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    white-space:nowrap;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid var(--accent);
+    background:rgba(255,213,74,.12);
+    color:var(--ink);
+    font-weight:800;
+    font-size:14px;
+    backdrop-filter:blur(3px);
+    transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+  .about:hover{
+    transform:translate(-100%,-50%) translateX(-2px);
+    background:rgba(255,213,74,.2);
+  }
+  .about svg{ width:18px; height:18px; }
+
+  footer{
+    color:var(--muted);
+    padding:20px clamp(16px,3vw,24px);
+    text-align:center;
+    font-size:clamp(12px,2.4vw,14px);
+    text-wrap:balance;
+    background:transparent;
+    font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  }
+  footer .rule{
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--line),transparent);
+    border:0;
+    margin:16px 0 12px;
+  }
+
+  /* ===== GLOBAL FADE IN (FIXED) ===== */
+  .fade{
+    opacity:0;
+    transition: opacity .8s ease;
+    will-change: opacity;
+  }
+  .fade.show{ opacity:1; }
+
+  /* Only use this on elements that DON'T already rely on transform for positioning */
+  .slide{
+    transform:translateY(18px);
+    transition:
+      opacity .8s ease,
+      transform .8s cubic-bezier(.22,.61,.36,1);
+    will-change: opacity, transform;
+  }
+  .slide.show{ transform:translateY(0); }
+
+  /* Optional: sprite layer "breathes" in */
+  .art.slide{ transform:scale(.96); }
+  .art.slide.show{ transform:scale(1); }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .fade{ transition:none; opacity:1; }
+    .slide{ transition:none; transform:none; opacity:1; }
+    .quote{ transition:none; opacity:1; clip-path:none; }
+    .quote.show{ animation:none; }
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width:740px){
+    :root{
+      --cardW: min(560px, 94vw);
+      --leftCol: 1fr;
+      --rightCol: 1fr;
+
+      --spriteScale: 1.05;
+      --spriteX: 56%;
+      --spriteY: 66%;
+
+      --btnLeft: 16px;
+      --btnBottom: 92px;
+
+      --quoteLeft: 16px;
+      --quoteBottom: 24px;
+
+      --quoteMax: unset;
+      --bleed: 360px;
+    }
+
+    .card{
+      aspect-ratio:3/4;
+      grid-template-columns:1fr;
+      grid-template-rows:auto 1fr;
+    }
+
+    .profileInfo{
+      position:relative;
+      z-index:20;
+      padding:22px 18px 14px;
+      align-items:center;
+      text-align:center;
+    }
+
+    .bio, .stats{ width:min(54ch, 100%); }
+
+    .sprite{
+      height:90%;
+      max-width:96%;
+    }
+
+    .quote{
+      right:16px;
+      max-width:unset;
+      font-size:clamp(20px,6vw,28px);
+    }
+
+    .enter{
+      position:fixed;
+      left:auto;
+      right:clamp(12px,3vw,20px);
+      top:50%;
+      transform:translateY(-50%);
+    }
+    .about{
+      position:fixed;
+      left:clamp(12px,3vw,20px);
+      top:50%;
+      transform:translateY(-50%);
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="logo fade slide">
+      <img src="assets/wt_logo.png" alt="Whispering Tides" />
+    </div>
+
+    <main class="stage">
+      <div class="card fade slide" id="feature">
+        <div class="frame" aria-hidden="true"></div>
+
+        <div class="art fade slide" aria-hidden="true">
+          <img class="sprite" src="assets/yara_sprite.png" alt="">
+        </div>
+
+        <section class="profileInfo" aria-label="Yara profile">
+          <div class="headerBlock">
+            <div class="crestRow">
+              <img src="assets/frostheim_crest.png.webp" alt="Frostheim crest">
+            </div>
+
+            <h2 class="name">Yara Du Verre</h2>
+            <hr class="divider" />
+            <p class="byline">By: Aleesa Bautista</p>
+          </div>
+
+          <p class="bio">
+            Former captain to the Anomalous Investigation Institute’s US Branch, Aether Academy, West Division,
+            she was transferred to Darkwick Academy under the belief that she contracted a demon. Soul weighed
+            into Frostheim among the elite, she’s determined to stay hidden in the shadows—finding sanctuary
+            in growing mysterious flora in the offlimits and abandoned Frostheim Greenhouse or turning the former
+            House doctor’s lab into an alchemist’s apothecary.
+          </p>
+
+          <div class="stats" aria-label="Yara details">
+            <div class="row"><span class="k">House:</span><span class="v">Frostheim</span></div>
+            <div class="row"><span class="k">Year:</span><span class="v">Third year</span></div>
+            <div class="row"><span class="k">Birthday:</span><span class="v">July 17</span></div>
+            <div class="row"><span class="k">Likes:</span><span class="v">Being alone</span></div>
+            <div class="row"><span class="k">Blood type:</span><span class="v">B</span></div>
+          </div>
+        </section>
+
+        <div id="quote" class="quote" aria-live="polite" aria-atomic="true">
+          <span id="quoteText"></span>
+        </div>
+
+        <a class="storyBtn fade" href="vn/index.html" aria-label="Open the Visual Novel">
+          <span class="dot" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 5v14l11-7z"></path>
+            </svg>
+          </span>
+          Yara’s Visual Novel
+        </a>
+      </div>
+
+      <a class="enter fade" href="yaras-room-starter/index.html" aria-label="Enter Yara’s Room">
+        Enter Room
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+        </svg>
+      </a>
+
+      <a class="about fade" href="about.html" aria-label="About the Project">
+        About the Project
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4"></path>
+          <path d="M12 8h.01"></path>
+        </svg>
+      </a>
+    </main>
+
+    <footer class="fade slide">
+      <div class="rule"></div>
+      <small><strong>Disclaimer:</strong> <em>This is a OC fansite made for creative, and non-comerial use, and created based off the world and lore of Tokyo Debunker, belonging to Zigza. Frostheim, Darkwick Academy, and Tokyo Debunker logos and the rest of the Tokyo Debunker lore are trademarked and copyrighted by Zigza. All art (fanart or otherwise) found on this website unless indicated has been created by me, Aleesa Bautista.</em></small>
+    </footer>
+  </div>
+
+<script>
+  const fullQuote = "Hey. Sorry. I'm kind of busy here... Mind coming back later?";
+  const qEl = document.getElementById('quote');
+  const qText = document.getElementById('quoteText');
+
+  function revealQuote(){
+    if(!qEl || !qText) return;
+    qText.textContent = fullQuote;
+    setTimeout(()=> qEl.classList.add('show'), 400);
+  }
+
+  function fadeSequence(){
+    const order = [
+      '.logo',
+      '#feature',
+      '#feature .art',
+      '#feature .storyBtn',
+      '.about',
+      '.enter',
+      'footer'
+    ];
+
+    let step = 0;
+    order.forEach(sel=>{
+      const el = document.querySelector(sel);
+      if(!el) return;
+      setTimeout(()=> el.classList.add('show'), 200 + (step * 180));
+      step++;
+    });
+  }
+
+  window.addEventListener('load', () => {
+    fadeSequence();
+
+    // Quote still triggers when the card is in view
+    if('IntersectionObserver' in window){
+      const io = new IntersectionObserver(entries=>{
+        entries.forEach(x=>{
+          if(x.isIntersecting){ revealQuote(); io.disconnect(); }
+        });
+      },{threshold:.6});
+      const feature = document.getElementById('feature');
+      if(feature) io.observe(feature);
+      else revealQuote();
+    } else {
+      revealQuote();
+    }
+  });
+</script>
+</body>
+</html>

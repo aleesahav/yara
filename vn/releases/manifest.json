@@ -1,0 +1,14 @@
+{
+  "episodes": [
+    {
+      "id": "ep00",
+      "title": "00. Prologue: Another Door Opened",
+      "description": "",
+      "released": true,
+      "chapters": [
+        { "id": "ch01", "title": "I. That Dream Again" },
+        { "id": "ch02", "title": "II. The Whispering" }
+      ]
+    }
+  ]
+}

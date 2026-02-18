@@ -1,0 +1,1967 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yara’s Research Binder</title>
+<style>
+:root{
+  /* Core palette (slightly brighter page for readability) */
+  --bg:#0b0b0d;
+  --panel:#0f1118;
+  --ink:#eef0f6;
+  --muted:#aeb6c8;
+  --accent:#8f4aff;
+  --border:#232739;
+  --tab:#171b29;
+  --page:#13182a;  /* brighter than before */
+  --ring:#a07bd7;
+
+  /* Extras */
+  --paperLine: rgba(255,255,255,.008);
+  --paperSheenTop: rgba(255,255,255,.03);
+  --paperSheenBot: rgba(0,0,0,.05);
+}
+
+/* Base */
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; height:100%; }
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+body.embedded{ overflow:hidden; }
+
+/* Wrapper */
+.wrap{
+  height:100dvh;
+  min-height:0;
+  display:grid;
+  place-items:center;
+  padding:14px;
+}
+.embedded .wrap{ padding:0; }
+
+/* Binder shell */
+.binder{
+  width:min(1100px, 95vw);
+  height:min(820px, 92vh);
+  display:grid;
+  grid-template-columns:56px 1fr;
+  grid-template-rows:48px 1fr 48px;
+  grid-template-areas:
+    "tabs  top"
+    "tabs  pages"
+    "tabs  foot";
+  background: linear-gradient(180deg, #101422, #0c0f19);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+  box-shadow: 0 28px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.embedded .binder{
+  width:100%;
+  height:100%;
+  border-radius:0;
+  box-shadow:none;
+}
+
+/* Top Bar */
+.top{
+  grid-area:top;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  background:#0d111a;
+}
+.title{ font-weight:800; letter-spacing:.2px; }
+.grow{ flex:1; }
+.pill{
+  border:1px solid var(--border);
+  background:#121626;
+  color:var(--ink);
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:.9rem;
+  white-space:nowrap;
+}
+
+/* Tabs rail */
+.tabs{
+  grid-area:tabs;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:10px 8px;
+  border-right:1px solid var(--border);
+  background:#0c0f18;
+
+  overflow:auto;
+  min-height:0;
+  padding-right:6px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+/* Tab pill */
+.tab{
+  background:var(--tab);
+  border:1px solid var(--border);
+  color:#cfd3e3;
+  border-radius:10px;
+  cursor:pointer;
+  user-select:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 8px;
+  min-height:72px;
+
+  transition: filter .15s ease, transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.tab:hover{ filter:brightness(1.06); }
+.tab:active{ transform: translateX(2px); }
+.tab.active{
+  background: linear-gradient(180deg,#1b2040,#141a30);
+  color:#fff;
+  border-color:#2c3150;
+}
+
+/* If you’re using nested span labels */
+.tab__text{
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  white-space: nowrap;
+  line-height: 1;
+  padding-block: 4px;
+}
+
+/* Pages viewport */
+.pages{
+  grid-area:pages;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(130% 100% at 15% 0%, rgba(160,123,215,.10), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.02), transparent 40%);
+}
+
+/* Page base */
+.page{
+  position:absolute;
+  inset:14px;
+  border:1px solid #1b2132;
+  border-radius:16px;
+
+  /* “paper” look, subtle */
+  background:
+    linear-gradient(180deg, var(--paperSheenTop), var(--paperSheenBot)),
+    repeating-linear-gradient(
+      0deg,
+      var(--paperLine),
+      var(--paperLine) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    var(--page);
+
+  padding:18px 18px 18px 18px;
+  overflow:auto;
+
+  /* Calm motion: slide only */
+  transform: translateX(105%);
+  opacity:0;
+  transition: transform .32s ease, opacity .22s ease;
+  will-change: transform, opacity;
+
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* Active page: rests flat */
+.page.active{
+  transform: translateX(0);
+  opacity:1;
+  z-index:2;
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* Optional exit state (your JS may add this) */
+.page.exit-left{
+  transform: translateX(-18%);
+  opacity:0;
+  z-index:1;
+}
+
+/* Typography */
+.page h1{ margin:.2rem 0 6px; font-size:1.25rem; }
+.page h2{
+  margin:1rem 0 .4rem;
+  font-size:1.05rem;
+  color:#f0f2fb;
+  position:relative;
+  padding-left:10px;
+}
+.page h2::before{
+  content:"";
+  position:absolute;
+  left:0; top:.2em; bottom:.2em;
+  width:3px;
+  background: linear-gradient(var(--accent), #cbb3ff);
+  border-radius:2px;
+}
+.page h3{ margin:.75rem 0 .35rem; font-size:1rem; color:#e8ebf7; }
+.page p{ margin:.55rem 0; color:#dde1ee; }
+.page ul{ margin:.5rem 0 0 1.1rem; color:#dde1ee; }
+.page .meta{ color:var(--muted); font-size:.9rem; }
+.page .hr{ height:1px; background:#1b2132; margin:.85rem 0; }
+
+/* Images */
+.page img{
+  max-width:100%;
+  border-radius:10px;
+  border:1px solid #1b2132;
+  display:block;
+}
+
+/* Portrait helpers */
+.portrait{ display:block; margin-bottom:10px; }
+.portrait.sm{ width:min(240px, 60%); }
+
+/* Ghouls-only portrait sizing (kept from your file) */
+body[data-book="ghouls"] img.portrait{
+  width:300px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display:block;
+  margin:0 0 10px;
+  border-radius:8px;
+  cursor:zoom-in;
+}
+body[data-book="ghouls"] img.portrait.sm{ width:240px; }
+body[data-book="ghouls"] p > img.portrait{ margin-bottom:0; }
+
+/* Links inside pages */
+.page a{
+  color:#e9ddff;
+  text-decoration: underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:2px;
+}
+.page a:hover{ filter:brightness(1.12); }
+
+/* Ring spine */
+.rings{
+  position:absolute;
+  left:46px;
+  top:0;
+  bottom:0;
+  width:10px;
+  pointer-events:none;
+
+  background: radial-gradient(closest-side, #d9ccff 35%, transparent 37%) center 84px / 10px 62px repeat-y;
+  opacity:.35;
+  filter:saturate(.85);
+}
+
+/* Footer / Pager */
+.foot{
+  grid-area:foot;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-top:1px solid var(--border);
+  background:#0d111a;
+}
+.btn{
+  border:1px solid var(--border);
+  background:#141828;
+  color:#eef;
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.btn:hover{ filter:brightness(1.05); }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+.index{ color:var(--muted); }
+
+/* Make your arrows work even if you keep the old button text */
+#prevBtn::before{ content:"◀ "; }
+#nextBtn::after{ content:" ▶"; }
+.foot .btn{
+  font-family: ui-serif, Georgia, serif;
+  letter-spacing:.3px;
+}
+
+/* Subtle page curl ONLY (no dog-ear) */
+.page.active::after{
+  content:"";
+  position:absolute;
+  bottom:0; right:0;
+  width:54px; height:54px;
+  background: radial-gradient(120% 120% at 100% 100%, rgba(255,255,255,.08) 0%, transparent 60%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  opacity:.45;
+  pointer-events:none;
+}
+
+/* Canon (Zigza) */
+.canon{ color:#4da6ff; font-weight:500; }
+
+/* Key / Disclaimer */
+#canonKey{
+  margin-top:10px;
+  text-align:center;
+  font-size:.9rem;
+  color:#aeb4c5;
+}
+#canonKey small{ opacity:.85; }
+
+#disclaimer{
+  margin-top:8px;
+  text-align:center;
+  font-size:.75rem;
+  color:#9aa1b6;
+  max-width:1000px;
+}
+
+/* === Gallery Grid === */
+.gallery-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap:12px;
+  margin:10px 0;
+}
+.gallery-grid a{
+  display:block;
+  position:relative;
+  border:1px solid #1b2132;
+  border-radius:10px;
+  overflow:hidden;
+  background:#0e121b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+.gallery-grid .thumb{
+  width:100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display:block;
+  opacity:.96;
+  transition: transform .2s ease, opacity .2s ease, filter .2s ease;
+}
+.gallery-grid a:hover .thumb{
+  transform: scale(1.02);
+  opacity:1;
+  filter: brightness(1.06);
+}
+
+/* === Lightbox === */
+.lightbox{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:none;
+  place-items:center;
+  background:rgba(0,0,0,.8);
+  backdrop-filter: blur(2px);
+}
+.lightbox[aria-hidden="false"]{ display:grid; }
+
+.lightbox__imgwrap{
+  max-width:min(92vw, 1200px);
+  max-height:90vh;
+  position:relative;
+}
+.lightbox__imgwrap img{
+  max-width:100%;
+  max-height:90vh;
+  display:block;
+  border-radius:12px;
+  border:1px solid #2a3147;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  cursor:zoom-out;
+}
+.lightbox__close{
+  position:absolute;
+  top:-42px;
+  right:0;
+  border:1px solid #2a3147;
+  background:#111627;
+  color:#eef;
+  border-radius:10px;
+  padding:6px 10px;
+  cursor:pointer;
+}
+@media (max-width: 600px){
+  .lightbox__close{ top:8px; right:8px; }
+}
+
+/* Archive / New UI */
+.badge{
+  display:inline-block;
+  margin-left:6px;
+  padding:2px 6px;
+  font-size:11px;
+  border:1px solid var(--accent);
+  border-radius:999px;
+  color:#e9ddff;
+  background:rgba(143,74,255,.12);
+}
+
+.page__header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:.4rem;
+}
+.stamp{
+  font-weight:800;
+  font-size:12px;
+  padding:2px 8px;
+  border:1px dashed #6b6b90;
+  border-radius:6px;
+  opacity:.85;
+  white-space:nowrap;
+}
+.stamp--new{ border-color: var(--accent); }
+.stamp--status{ margin-left:auto; }
+
+.past{
+  margin-top:12px;
+  padding:12px;
+  border:1px dashed #383850;
+  border-radius:12px;
+  background:#0f1020;
+}
+.past h4{ margin:0 0 6px; font-size:12px; opacity:.8; }
+.past__item{ margin:.45rem 0; }
+.past .stamp{ margin-right:6px; }
+
+/* Updates block inside profile pages */
+.updates{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid #1b2132;
+  border-radius:12px;
+  background:#0e121b;
+}
+.updates h3{ margin:0 0 .4rem; font-size:1rem; color:#e6e9f6; }
+.updates ul{ margin:.25rem 0 0 1rem; }
+.updates li{ margin:.25rem 0; }
+.chip{
+  display:inline-block;
+  border:1px solid #2a3147;
+  border-radius:999px;
+  padding:.1rem .5rem;
+  font-size:.75rem;
+  color:#cfd3e3;
+  margin-left:.35rem;
+}
+
+/* Responsive tightening */
+@media (max-height: 760px){
+  .tab{ min-height:60px; padding:10px 6px; font-size:.8rem; }
+  .tabs{ gap:6px; }
+  .tab__text{ font-size:.82rem; }
+  .page{ inset:10px; padding:16px; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="binder" role="application" aria-label="Research Binder">
+    <div class="rings" aria-hidden="true"></div>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="Sections"></div>
+
+    <div class="top">
+      <div class="title" id="binderTitle">Binder</div>
+      <div class="pill" id="updatedPill" title="In-story timestamp">Yara Last Updated: Sep 2024</div>
+      <div class="grow"></div>
+      <div class="pill" id="sectionTitle">Section</div>
+    </div>
+
+    <div class="pages" id="pages" aria-live="polite"></div>
+
+    <div class="foot">
+      <button class="btn" id="prevBtn" aria-label="Previous page">← Prev</button>
+      <button class="btn" id="nextBtn" aria-label="Next page">Next →</button>
+      <div class="grow"></div>
+<div id="canonKey"><small><span class="canon">Blue text indicates Zigza's canon. </span> This narrative is not a claim over Zigza’s IP. </small></div>
+      <div class="index" id="pageIndex">1 / 1</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Lightbox (click any gallery image to open) -->
+<div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-label="Image preview">
+  <div class="lightbox__imgwrap">
+    <button class="lightbox__close" type="button" aria-label="Close">✕ Close</button>
+    <img id="lightboxImg" alt="">
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+/* ---------------- Router (which book?) ---------------- */
+const params = new URLSearchParams(location.search);
+const BOOK_KEY = (params.get('book') || 'aii').toLowerCase();
+
+/* ---------------- Data (All Binders) ---------------- */
+const BOOKS = {
+ /* ================= AII RESEARCH BINDER ================= */
+aii: {
+  title: "Yara’s Research on the Anomalous Investigation Institute",
+  sections: [
+
+    /* ========== ABOUT ========== */
+    {
+      id: "about",
+      label: "About",
+      pages: [
+        {
+          id: "index",
+          heading: "About — Index",
+          sub: "Table of Contents",
+          src: "content/aii/about/index.md"
+        },
+        {
+          id: "anomaly",
+          heading: "Anomaly",
+          sub: "Something that deviates from what is normal",
+          src: "content/aii/about/anomaly.md"
+        }
+      ]
+    },
+
+    /* ========== BRANCHES ========== */
+    {
+      id: "branches",
+      label: "Branches",
+      pages: [
+        {
+          id: "index",
+          heading: "Branches — Index",
+          sub: "Table of Contents",
+          src: "content/aii/branches/index.md"
+        },
+        {
+          id: "darkwick",
+          heading: "Darkwick Academy (Japan)",
+          sub: "Public Cover • Leading Branch in Anomalous Research",
+          src: "content/aii/branches/darkwick.md"
+        },
+        {
+          id: "emrys",
+          heading: "Emrys Academy (Britain)",
+          sub: "British Branch",
+          src: "content/aii/branches/emrys.md"
+        },
+        {
+          id: "noir",
+          heading: "Noir Academy (Academiei Noire) — Romania",
+          sub: "Clandestine and Militarized",
+          src: "content/aii/branches/noir.md"
+        },
+        {
+          id: "sidereal",
+          heading: "Sidereal Academy (Académie des Sidéraux) — France",
+          sub: "All Woman Academic Institution",
+          src: "content/aii/branches/sidereal.md"
+        },
+        {
+          id: "aether",
+          heading: "Aether Academy — United States Branch",
+          sub: "Divisions • Curriculum • Admissions",
+          src: "content/aii/branches/aether.md"
+        }
+      ]
+    },
+
+    /* ========== DEPARTMENTS ========== */
+    {
+      id: "departments",
+      label: "Departments",
+      pages: [
+        {
+          id: "index",
+          heading: "Departments — Index",
+          sub: "Table of Contents",
+          src: "content/aii/departments/index.md"
+        },
+        {
+          id: "regulation",
+          heading: "Department of Anomaly Regulation",
+          sub: "Authority over Anomalies on Campuses",
+          src: "content/aii/departments/regulation.md"
+        },
+        {
+          id: "biology",
+          heading: "Department of Anomalous Biology",
+          sub: "Anatomy, Ecology, Behavior of Anomalies",
+          src: "content/aii/departments/biology.md"
+        },
+        {
+          id: "law",
+          heading: "Department of Anomalous Law",
+          sub: "Legal Framework for Anomalous Framework",
+          src: "content/aii/departments/law.md"
+        },
+        {
+          id: "medicine",
+          heading: "Department of Anomalous Medicine",
+          sub: "Medical Science",
+          src: "content/aii/departments/medicine.md"
+        },
+        {
+          id: "dagr",
+          heading: "Department of Genetic Research",
+          sub: "Link between Anomalous genes and disease",
+          src: "content/aii/departments/dagr.md"
+        },
+        {
+          id: "artifacts",
+          heading: "Department of Artifact Regulation",
+          sub: "Relic Oversight, Containment, Licensing",
+          src: "content/aii/departments/artifacts.md"
+        },
+        {
+          id: "specialops",
+          heading: "Department of Special Operations",
+          sub: "Civilian Mitigation",
+          src: "content/aii/departments/specialops.md"
+        }
+      ]
+    },
+
+    /* ========== PROFILES ========== */
+    {
+      id: "profiles",
+      label: "Profiles",
+      pages: [
+        {
+          id: "index",
+          heading: "Profiles — Index",
+          sub: "Table of Contents",
+          src: "content/aii/profiles/index.md"
+        },
+        {
+          id: "armond",
+          heading: "Armond Du Verre",
+          sub: "Adopted Uncle • President of Sidereal Academy",
+          src: "content/aii/profiles/armond.md"
+        },
+        {
+          id: "brice",
+          heading: "Brice Du Verre",
+          sub: "Adopted Father • Prodigal (?) Son",
+          src: "content/aii/profiles/brice.md"
+        },
+        {
+          id: "gaultier",
+          heading: "Gaultier Du Verre",
+          sub: "Late Adopted Grandfather • Former President of Sidereal Academy",
+          src: "content/aii/profiles/gaultier.md"
+        },
+        {
+          id: "luciana",
+          heading: "Luciana Yoon Du Verre",
+          sub: "Adopted Cousin • Aether West Faculty",
+          src: "content/aii/profiles/luciana.md"
+        },
+        {
+          id: "pia",
+          heading: "Pia Du Verre (née Santana)",
+          sub: "Adopted Mother • An Ordinary Woman",
+          src: "content/aii/profiles/pia.md"
+        },
+        {
+          id: "soojin",
+          heading: "Soojin Du Verre (née Yoon)",
+          sub: "Adopted Aunt • AII Genetic Researcher",
+          src: "content/aii/profiles/soojin.md"
+        }
+      ]
+    },
+
+    /* ========== ARTIFACTS ========== */
+    {
+      id: "artifacts",
+      label: "Artifacts",
+      pages: [
+        {
+          id: "index",
+          heading: "Artifacts — Index",
+          sub: "Table of Contents",
+          src: "content/aii/artifacts/index.md"
+        },
+        {
+          id: "aeonarms",
+          heading: "Aeon Arms",
+          sub: "Medical-Biological • Prosthetic Arms",
+          src: "content/aii/artifacts/aeonarms.md"
+        },
+        {
+          id: "arbitersreign",
+          heading: "Arbiter’s Reign",
+          sub: "Combat • Brass Knuckles",
+          src: "content/aii/artifacts/arbitersreign.md"
+        },
+/*        {
+          id: "maidensgrief",
+          heading: "Maiden's Grief",
+          sub: "Like a Beating Heart",
+          src: "content/aii/artifacts/maidensgrief.md"
+        },
+         {
+          id: "shadowbalisong",
+          heading: "Shadow Balisong",
+          sub: "Combat • Butterfly Knife",
+          src: "content/aii/artifacts/shadowbalisong.md"
+        }*/
+
+      ]
+    }
+
+  ]
+},
+
+
+  /* ================= GHOULS BINDER (by House) ================= */
+ ghouls: {
+  title: "Yara's Research on Ghouls",
+  sections: [
+    {
+      id: "combat",
+      label: "Overview",
+      pages: [
+        { id:"index", heading:"Overview on Ghouls, Combat, and Power", sub:"Table of Contents", src:"content/ghouls/combat/index.md" },
+        { id:"demon", heading:"Demons", sub:"Malevolent Supernatural Entities", src:"content/ghouls/combat/demon.md" },
+        { id:"pact", heading:"Demonic Pact", sub:"How One Contracts a Demon", src:"content/ghouls/combat/pact.md" },
+        { id:"ghouls", heading:"Ghouls", sub:"Those that Create a Demonic Pact", src:"content/ghouls/combat/ghouls.md" },
+        { id:"stigma", heading:"Stigma", sub:"The Ghoul’s Power", src:"content/ghouls/combat/stigma.md" },
+        { id:"stigma-test", heading:"Stigma Test", sub:"Identification Method", src:"content/ghouls/combat/stigma-test.md" },
+      ]
+    },
+
+      /* -------- Frostheim -------- */
+      {
+        id:"frostheim", label:"Frostheim",
+        pages:[
+          {
+  id:"index",
+  heading:"Frostheim — Ghouls",
+  sub:"Roster",
+  src:"content/ghouls/frostheim/index.md"
+},
+
+           /* -------- JIN KAMURAI ENTRIES -------- */ 
+          {
+  id:"jin",
+  collect_updates_for:"jin",
+  heading:"Jin Kamurai",
+  sub:"Stigma: Bianerus",
+  src:"content/ghouls/frostheim/jin/index.md"
+},
+{
+  id:"jin-archive-2024-08-26",
+  subject:"jin",
+  date:"2024-08-26",
+  status:"archive",
+  heading:"Pain In My Ass",
+  sub:"So-Called King",
+  src:"content/ghouls/frostheim/jin/archive/2024-08-26-pain-in-my-ass.md"
+},
+{
+  id:"jin-archive-2024-07-30",
+  subject:"jin",
+  date:"2024-07-30",
+  status:"archive",
+  heading:"Early Impressions",
+  sub:"So-Called King",
+  src:"content/ghouls/frostheim/jin/archive/2024-07-30-early-impressions.md"
+},
+{
+  id:"jin-gallery",
+  heading:"Jin Kamurai — Gallery",
+  sub:"Fan Art Gallery",
+  src:"content/ghouls/frostheim/jin/gallery.md"
+},
+
+
+          /* -------- TOHMA ISHIBASHI ENTRIES -------- */
+
+          {
+  id:"tohma",
+  collect_updates_for:"tohma",
+  heading:"Tohma Ishibashi",
+  sub:"Vice Captain • Not Above Bribes…",
+  src:"content/ghouls/frostheim/tohma/index.md"
+},
+{
+  id:"tohma-archive-2024-07-30",
+  subject:"tohma",
+  date:"2024-07-30",
+  status:"archive",
+  heading:"Early Impressions",
+  sub:"Vice Captain of Frostheim — Dirty Hands, Dirtier Gloves",
+  src:"content/ghouls/frostheim/tohma/archive/2024-07-30-early-impressions.md"
+},
+{
+  id:"tohma-gallery",
+  heading:"Tohma Ishibashi — Gallery",
+  sub:"Fan Art Gallery",
+  src:"content/ghouls/frostheim/tohma/gallery.md"
+},
+
+
+            /* -------- LUCAS ERRANT ENTRIES -------- */
+{
+  id:"lucas",
+  collect_updates_for:"lucas",
+  heading:"Lucas Errant",
+  sub:"Ghoul Transferred into Frostheim • Stigma: Iggnam",
+  src:"content/ghouls/frostheim/lucas/index.md"
+},
+{
+  id:"lucas-archive-2024-09-03",
+  subject:"lucas",
+  date:"2024-09-03",
+  status:"archive",
+  heading:"First Impressions",
+  sub:"Transfer from Emrys",
+  src:"content/ghouls/frostheim/lucas/archive/2024-09-03-first-impressions.md"
+},
+{
+  id:"lucas-gallery",
+  heading:"Lucas Errant — Gallery",
+  sub:"Fan Art Gallery",
+  src:"content/ghouls/frostheim/lucas/gallery.md"
+},
+
+
+           /* -------- KAITO FUJI ENTRIES -------- */
+
+          {
+  id:"kaito",
+  collect_updates_for:"kaito",
+  heading:"Kaito Fuji",
+  sub:"Questions",
+  src:"content/ghouls/frostheim/kaito/index.md"
+},
+{
+  id:"kaito-archive-2024-07-30",
+  subject:"kaito",
+  date:"2024-07-30",
+  status:"archive",
+  heading:"First Impressions",
+  sub:"Not Frostheim Material",
+  src:"content/ghouls/frostheim/kaito/archive/2024-07-30-first-impressions.md"
+},
+{
+  id:"kaito-gallery",
+  heading:"Kaito Fuji — Gallery",
+  sub:"Fan Art Gallery",
+  src:"content/ghouls/frostheim/kaito/gallery.md"
+},
+
+        ]
+      },
+
+     /* -------- Vagastrom -------- */
+{
+  id:"vagastrom", label:"Vagastrom",
+  pages:[
+    {
+      id:"index",
+      heading:"Vagastrom — Ghouls",
+      sub:"Roster",
+      src:"content/ghouls/vagastrom/index.md"
+    },
+
+    /* -------- ALAN MIDO -------- */
+    {
+      id:"alan",
+      collect_updates_for:"alan",
+      heading:"Alan Mido",
+      sub:"Secret Meetings",
+      src:"content/ghouls/vagastrom/alan/index.md"
+    },
+    {
+      id:"alan-archive-2024-08-05",
+      subject:"alan",
+      date:"2024-08-05",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Vagastrom Captain • Rumored Past",
+      src:"content/ghouls/vagastrom/alan/archive/2024-08-05-first-impressions.md"
+    },
+    {
+      id:"alan-gallery",
+      heading:"Alan Mido — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/vagastrom/alan/gallery.md"
+    },
+
+    /* -------- LEO KUROSAGI -------- */
+    {
+      id:"leo",
+      collect_updates_for:"leo",
+      heading:"Leo Kurosagi",
+      sub:"Vice Captain • Stigma: Haxs",
+      src:"content/ghouls/vagastrom/leo/index.md"
+    },
+    {
+      id:"leo-archive-2024-09-07",
+      subject:"leo",
+      date:"2024-09-07",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Like Bubblegum",
+      src:"content/ghouls/vagastrom/leo/archive/2024-09-07-first-impressions.md"
+    },
+    {
+      id:"leo-gallery",
+      heading:"Leo Kurosagi — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/vagastrom/leo/gallery.md"
+    },
+
+    /* -------- SHOHEI HAIZONO -------- */
+    {
+      id:"shohei",
+      collect_updates_for:"shohei",
+      heading:"Shohei Haizono",
+      sub:"Not Crushing or Anything",
+      src:"content/ghouls/vagastrom/shohei/index.md"
+    },
+    {
+      id:"shohei-archive-2024-09-05",
+      subject:"shohei",
+      date:"2024-09-05",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"He Fights and Cooks?",
+      src:"content/ghouls/vagastrom/shohei/archive/2024-09-05-first-impressions.md"
+    },
+    {
+      id:"shohei-gallery",
+      heading:"Shohei Haizono — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/vagastrom/shohei/gallery.md"
+    }
+  ]
+},
+
+/* -------- Jabberwock -------- */
+{
+  id:"jabberwock", label:"Jabberwock",
+  pages:[
+    {
+      id:"index",
+      heading:"Jabberwock — Ghouls",
+      sub:"Roster & Links",
+      src:"content/ghouls/jabberwock/index.md"
+    },
+
+    /* -------- HARU SAGARA -------- */
+    {
+      id:"haru",
+      collect_updates_for:"haru",
+      heading:"Haru Sagara",
+      sub:"Captain, Hardworking",
+      src:"content/ghouls/jabberwock/haru/index.md"
+    },
+    {
+      id:"haru-archive-2024-08-28",
+      subject:"haru",
+      date:"2024-08-28",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Hardworking Captain of the Safari",
+      src:"content/ghouls/jabberwock/haru/archive/2024-08-28-first-impressions.md"
+    },
+    {
+      id:"haru-gallery",
+      heading:"Haru Sagara — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/jabberwock/haru/gallery.md"
+    },
+
+    /* -------- TOWA OTONASHI -------- */
+    {
+      id:"towa",
+      collect_updates_for:"towa",
+      heading:"Towa Otonashi",
+      sub:"First Impressions",
+      src:"content/ghouls/jabberwock/towa/index.md"
+    },
+
+    /* -------- TOWA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"towa-archive-000-placeholder",
+      subject:"towa",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/jabberwock/towa/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"towa-gallery",
+      heading:"Towa Otonashi — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/jabberwock/towa/gallery.md"
+    },
+
+    /* -------- REN SHIRANAMI -------- */
+    {
+      id:"ren",
+      collect_updates_for:"ren",
+      heading:"Ren Shiranami",
+      sub:"First Impressions",
+      src:"content/ghouls/jabberwock/ren/index.md"
+    },
+
+    /* -------- REN — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"ren-archive-000-placeholder",
+      subject:"ren",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/jabberwock/ren/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"ren-gallery",
+      heading:"Ren Shiranami — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/jabberwock/ren/gallery.md"
+    }
+  ]
+},
+
+
+   /* -------- Sinostra -------- */
+{
+  id:"sinostra", label:"Sinostra",
+  pages:[
+    {
+      id:"index",
+      heading:"Sinostra — Ghouls",
+      sub:"Roster & Links",
+      src:"content/ghouls/sinostra/index.md"
+    },
+
+    /* -------- TAIGA HOSHIBAMI -------- */
+    {
+      id:"taiga",
+      collect_updates_for:"taiga",
+      heading:"Taiga Hoshibami",
+      sub:"First Impressions",
+      src:"content/ghouls/sinostra/taiga/index.md"
+    },
+
+    /* -------- TAIGA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"taiga-archive-000-placeholder",
+      subject:"taiga",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/sinostra/taiga/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"taiga-gallery",
+      heading:"Taiga Hoshibami — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/sinostra/taiga/gallery.md"
+    },
+
+    /* -------- ROMEO LUCCI -------- */
+    {
+      id:"romeo",
+      collect_updates_for:"romeo",
+      heading:"Romeo “Fico” Lucci",
+      sub:"Secrets",
+      src:"content/ghouls/sinostra/romeo/index.md"
+    },
+    {
+      id:"romeo-archive-2024-08-25",
+      subject:"romeo",
+      date:"2024-08-25",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Vice Captain, Loud Mouth",
+      src:"content/ghouls/sinostra/romeo/archive/2024-08-25-first-impressions.md"
+    },
+    {
+      id:"romeo-gallery",
+      heading:"Romeo “Fico” Lucci — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/sinostra/romeo/gallery.md"
+    },
+
+    /* -------- RITSU SHINJO -------- */
+    {
+      id:"ritsu",
+      collect_updates_for:"ritsu",
+      heading:"Ritsu Shinjo",
+      sub:"First Impressions",
+      src:"content/ghouls/sinostra/ritsu/index.md"
+    },
+
+    /* -------- RITSU — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"ritsu-archive-000-placeholder",
+      subject:"ritsu",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/sinostra/ritsu/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"ritsu-gallery",
+      heading:"Ritsu Shinjo — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/sinostra/ritsu/gallery.md"
+    }
+  ]
+},
+
+
+ /* -------- Hotarubi -------- */
+{
+  id:"hotarubi", label:"Hotarubi",
+  pages:[
+    {
+      id:"index",
+      heading:"Hotarubi — Ghouls",
+      sub:"Roster & Links",
+      src:"content/ghouls/hotarubi/index.md"
+    },
+
+    /* -------- SUBARU KAGAMI -------- */
+    {
+      id:"subaru",
+      collect_updates_for:"subaru",
+      heading:"Subaru Kagami",
+      sub:"First Impressions",
+      src:"content/ghouls/hotarubi/subaru/index.md"
+    },
+    {
+      id:"subaru-archive-2024-07-30",
+      subject:"subaru",
+      date:"2024-07-30",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Captain",
+      src:"content/ghouls/hotarubi/subaru/archive/2024-07-30-first-impressions.md"
+    },
+    {
+      id:"subaru-gallery",
+      heading:"Subaru Kagami — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/hotarubi/subaru/gallery.md"
+    },
+
+    /* -------- HAKU KUSANAGI -------- */
+    {
+      id:"haku",
+      collect_updates_for:"haku",
+      heading:"Haku Kusanagi",
+      sub:"More to Him than just a Flirt",
+      src:"content/ghouls/hotarubi/haku/index.md"
+    },
+    {
+      id:"haku-archive-2024-07-27",
+      subject:"haku",
+      date:"2024-07-27",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Vice Captain",
+      src:"content/ghouls/hotarubi/haku/archive/2024-07-27-first-impressions.md"
+    },
+    {
+      id:"haku-gallery",
+      heading:"Haku Kusanagi — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/hotarubi/haku/gallery.md"
+    },
+
+    /* -------- ZENJI KOTODAMA -------- */
+    {
+      id:"zenji",
+      collect_updates_for:"zenji",
+      heading:"Zenji Kotodama",
+      sub:"Ghost",
+      src:"content/ghouls/hotarubi/zenji/index.md"
+    },
+    {
+      id:"zenji-archive-2024-08-24",
+      subject:"zenji",
+      date:"2024-08-24",
+      status:"archive",
+      heading:"First Impressions",
+      sub:"Floating Biwa",
+      src:"content/ghouls/hotarubi/zenji/archive/2024-08-24-first-impressions.md"
+    },
+    {
+      id:"zenji-gallery",
+      heading:"Zenji Kotodama — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/hotarubi/zenji/gallery.md"
+    }
+  ]
+},
+
+/* -------- Obscuary -------- */
+{
+  id:"obscuary", label:"Obscuary",
+  pages:[
+    {
+      id:"index",
+      heading:"Obscuary — Ghouls",
+      sub:"Roster & Links",
+      src:"content/ghouls/obscuary/index.md"
+    },
+
+    /* -------- EDWARD HART -------- */
+    {
+      id:"edward",
+      collect_updates_for:"edward",
+      heading:"Edward Hart",
+      sub:"Ancient",
+      src:"content/ghouls/obscuary/ed/index.md"
+    },
+
+    /* -------- EDWARD — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"edward-archive-000-placeholder",
+      subject:"edward",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/obscuary/ed/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"edward-gallery",
+      heading:"Edward Hart — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/obscuary/ed/gallery.md"
+    },
+
+    /* -------- RUI MIZUKI -------- */
+    {
+      id:"rui",
+      collect_updates_for:"rui",
+      heading:"Rui Mizuki",
+      sub:"Bar Owner • Touch = Death",
+      src:"content/ghouls/obscuary/rui/index.md"
+    },
+
+    /* -------- RUI — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"rui-archive-000-placeholder",
+      subject:"rui",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/obscuary/rui/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"rui-gallery",
+      heading:"Rui Mizuki — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/obscuary/rui/gallery.md"
+    },
+
+    /* -------- LYCA COLT -------- */
+    {
+      id:"lyca",
+      collect_updates_for:"lyca",
+      heading:"Lyca Colt",
+      sub:"Half-Werewolf • Ultio Prison",
+      src:"content/ghouls/obscuary/lyca/index.md"
+    },
+
+    /* -------- LYCA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"lyca-archive-000-placeholder",
+      subject:"lyca",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/obscuary/lyca/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"lyca-gallery",
+      heading:"Lyca Colt — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/obscuary/lyca/gallery.md"
+    }
+  ]
+},
+
+/* -------- Mortkranken -------- */
+{
+  id:"mortkranken", label:"Mortkranken",
+  pages:[
+    {
+      id:"index",
+      heading:"Mortkranken — Ghouls",
+      sub:"Roster & Links",
+      src:"content/ghouls/mortkranken/index.md"
+    },
+
+    /* -------- YURI ISAMI -------- */
+    {
+      id:"yuri",
+      collect_updates_for:"yuri",
+      heading:"Yuri Isami",
+      sub:"Doctor • Captain",
+      src:"content/ghouls/mortkranken/yuri/index.md"
+    },
+
+    /* -------- YURI — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"yuri-archive-000-placeholder",
+      subject:"yuri",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/mortkranken/yuri/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"yuri-gallery",
+      heading:"Yuri Isami — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/mortkranken/yuri/gallery.md"
+    },
+
+    /* -------- JIRO KIRISAKI -------- */
+    {
+      id:"jiro",
+      collect_updates_for:"jiro",
+      heading:"Jiro Kirisaki",
+      sub:"Frankenstein(?) • Deadpan",
+      src:"content/ghouls/mortkranken/jiro/index.md"
+    },
+
+    /* -------- JIRO — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
+    /*
+    {
+      id:"jiro-archive-000-placeholder",
+      subject:"jiro",
+      date:"2026-01-01",
+      status:"archive",
+      heading:"Placeholder — Updates Begin Here",
+      sub:"stub",
+      src:"content/ghouls/mortkranken/jiro/archive/000-placeholder.md"
+    },
+    */
+
+    {
+      id:"jiro-gallery",
+      heading:"Jiro Kirisaki — Gallery",
+      sub:"Fan Art Gallery",
+      src:"content/ghouls/mortkranken/jiro/gallery.md"
+    }
+  ]
+},
+
+    ]
+  },
+
+
+self: {
+  title: "Yara’s Personal Binder — Lore & Research",
+  sections: [
+
+    /* ========== BASIC PROFILE ========== */
+    {
+      id:"profile", label:"Profile",
+      pages:[
+        {
+          id:"index",
+          heading:"Basic Profile",
+          sub:"Quick facts",
+          src:"content/self/profile/index.md"
+        }
+      ]
+    },
+
+    /* ========== MEMORIES ========== */
+    {
+      id:"memories", label:"Memories",
+      pages:[
+        {
+          id:"index",
+          heading:"Memories",
+          sub:"... Maybe",
+          src:"content/self/memories/index.md"
+        },
+        {
+          id:"birth",
+          heading:"Birth Story",
+          sub:"Working Theory",
+          src:"content/self/memories/birth.md"
+        },
+        {
+          id:"youth",
+          heading:"Growing Up and Moving Around",
+          sub:"Never in One Place for Long",
+          src:"content/self/memories/youth.md"
+        }
+      ]
+    },
+
+    /* ========== RELATIONSHIPS ========== */
+    {
+      id:"relationships", label:"People",
+      pages:[
+        {
+          id:"index",
+          heading:"Relationships — Index",
+          sub:"Family • Kin • Echoes",
+          src:"content/self/relationships/index.md"
+        },
+        {
+          id:"rina",
+          heading:"Rina Amano",
+          sub:"Mother • Anchor",
+          src:"content/self/relationships/rina.md"
+        },
+        {
+          id:"martine",
+          heading:"Martine Avendaño",
+          sub:"Father • Engineer • Lighthouse",
+          src:"content/self/relationships/martine.md"
+        },
+        {
+          id:"duverre",
+          heading:"Brice & Pia Du Verre",
+          sub:"Adoptive Kin • Old money, new debts",
+          src:"content/self/relationships/duverre.md"
+        },
+        {
+          id:"luciana",
+          heading:"Luciana Yoon Du Verre",
+          sub:"Adopted Cousin • Mentor ",
+          src:"content/self/relationships/natalia.md"
+        },
+        {
+          id:"rune",
+          heading:"Rune Ishikawa",
+          sub:"Ghost",
+          src:"content/self/relationships/rune.md"
+        },
+        {
+          id:"aoi",
+          heading:"Aoi Tsukihana",
+          sub:"Chilhood Friend",
+          src:"content/self/relationships/aoi.md"
+        }
+      ]
+    },
+
+    /* ========== ARTIFACTS ========== */
+    {
+      id:"artifacts", label:"Artifacts",
+      pages:[
+        {
+          id:"index",
+          heading:"Artifacts — Index",
+          sub:"Weapons, Relics, Tools...",
+          src:"content/self/artifact/index.md"
+        },
+         {
+          id:"shadowbalisong",
+          heading:"Shadow Balisong",
+          sub:"Butterfly knife",
+          src:"content/self/artifact/shadowbalisong.md"
+        },
+
+        /*========= MAIDEN'S GRIEF ENTRIES =========*/
+
+        {
+          id:"maidens-grief",
+          collect_updates_for:"maidens-grief",
+          heading:"Maiden’s Grief",
+          sub:"Heart-forged dagger",
+          src:"content/self/artifact/maidensgrief/index.md"
+        },
+    {
+      id:"thenaming",
+      subject:"maidens-grief",
+      date:"2024-07-23",
+      status:"archive",
+      heading:"Early Thoughts on Maiden's Grief",
+      sub:"Not Quite An Artifact?",
+      src:"content/self/artifact/maidensgrief/thenaming.md"
+    },
+      
+      ]
+    },
+
+    /* ========== HOBBIES / INTERESTS ========== */
+    {
+      id:"hobbies", label:"Hobbies",
+      pages:[
+        {
+          id:"index",
+          heading:"Hobbies / Interests — Index",
+          sub:"Alchemy • Botany • Music",
+          src:"content/self/hobbies/index.md"
+        },
+        {
+          id:"alchemy",
+          heading:"Alchemy",
+          sub:"Deeptech notes",
+          src:"content/self/hobbies/alchemy.md"
+        },
+        {
+          id:"botany",
+          heading:"Botany",
+          sub:"Greenhouse records",
+          src:"content/self/hobbies/botany.md"
+        },
+        {
+          id:"music",
+          heading:"Music",
+          sub:"Echo and resonance",
+          src:"content/self/hobbies/music.md"
+        }
+      ]
+    },
+
+    /* ========== AETHER WEST MISSIONS ========== */
+    {
+      id:"aether-missions", label:"Aether",
+      pages:[
+        {
+          id:"index",
+          heading:"Aether West Missions — Index",
+          sub:"Case files",
+          src:"content/self/aether-missions/index.md"
+        },
+        {
+          id:"heart",
+          heading:"Atricordis — Subjugation",
+          sub:"Anger phase • Maiden’s Grief forged",
+          src:"content/self/aether-missions/heart.md"
+        }
+      ]
+    },
+
+    /* ========== DARKWICK MISSIONS ========== */
+    {
+      id:"darkwick-missions", label:"Darkwick",
+      pages:[
+        {
+          id:"index",
+          heading:"Darkwick Missions",
+          sub:"Log will populate as ops clear",
+          src:"content/self/darkwick-missions/index.md"
+        }
+      ]
+    },
+
+    /* ========== THEORIES ========== */
+    {
+      id:"theories", label:"Theories",
+      pages:[
+        {
+          id:"index",
+          heading:"Theories — Index",
+          sub:"Open questions • working notes",
+          src:"content/self/theories/index.md"
+        },
+        {
+          id:"whispering",
+          heading:"The Whispering",
+          sub:"From Somewhere, From Something",
+          src:"content/self/theories/whispering.md"
+        }
+      ]
+    }
+
+  ]
+}
+
+};
+
+
+/* ---------------- Binder Engine ---------------- */
+const state = {
+  book: BOOKS[BOOK_KEY] || BOOKS.aii,
+  secIndex: 0,
+  pageIndex: 0
+};
+
+const tabsEl = document.getElementById('tabs');
+const pagesEl = document.getElementById('pages');
+const titleEl = document.getElementById('binderTitle');
+const sectionPill = document.getElementById('sectionTitle');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const idxEl = document.getElementById('pageIndex');
+
+function findSectionIndex(id){
+  return Math.max(0, state.book.sections.findIndex(s=>s.id===id));
+}
+function findPageIndex(secIdx, pageId){
+  const sec = state.book.sections[secIdx];
+  if (!sec) return 0;
+  const i = sec.pages.findIndex(p=>p.id===pageId);
+  return Math.max(0, i);
+}
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  (state.book.sections || []).forEach((s, i)=>{
+    const b = document.createElement('button');
+    b.className = 'tab';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-selected', i===state.secIndex ? 'true' : 'false');
+    if (i===state.secIndex) b.classList.add('active');
+
+    const span = document.createElement('span');
+    span.className = 'tab__text';
+    span.textContent = s.label;
+    b.appendChild(span);
+
+    b.onclick = ()=>{
+      state.secIndex = i;
+      state._prevPage = state.pageIndex;
+      state.pageIndex = 0;
+      renderAll(true);
+      syncHash();
+    };
+    tabsEl.appendChild(b);
+  });
+}
+
+
+function renderPages(animate=true){
+  pagesEl.innerHTML = '';
+  const sec = state.book.sections[state.secIndex];
+  if(!sec){ pagesEl.textContent='(No section)'; return; }
+
+  const pages = sec.pages || [];
+
+  // Build lookup maps for replacement chains
+  const byId = new Map(pages.map(p => [p.id, p]));
+  const replacedIds = new Set(pages.filter(p => p.replaces).map(p => p.replaces));
+
+  // Only show "current" pages (those NOT replaced by a newer page)
+  const visible = pages.filter(p => !replacedIds.has(p.id));
+
+  visible.forEach((p, i)=>{
+    const div = document.createElement('article');
+    div.className = 'page' + (i===state.pageIndex ? ' active' : '');
+    div.setAttribute('role','region');
+    div.setAttribute('aria-label', p.heading || `Page ${i+1}`);
+    div.dataset.pageId = p.id || `page-${i}`;
+
+  
+    // Chain of archived pages (walk via replaces)
+    let chain = [];
+    let cur = p;
+    while (cur && cur.replaces) {
+      const prev = byId.get(cur.replaces);
+      if (!prev) break;
+      chain.push(prev);
+      cur = prev;
+    }
+
+    // Body
+   div.innerHTML = `
+  <div class="page__header">
+    <h1 style="margin:0">${p.heading || ''}</h1>
+  </div>
+  ${p.sub ? `<div class="meta">${p.sub}</div>` : ''}
+  <div class="hr"></div>
+  ${p.body || ''}
+  ${chain.length ? `
+    <div class="past">
+      <h4>Past Notes (${chain.length})</h4>
+      ${chain.map(c => `
+        <div class="past__item">
+          <span class="stamp">${c.date || '—'}</span>
+          <strong>${c.heading || c.id || 'Previous entry'}</strong>
+          <div style="opacity:.9">${c.body || ''}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '' }
+`;
+
+
+ // Auto-collect updates for profile pages.
+// If a page sets `collect_updates_for`, use that.
+// Otherwise, if it looks like a profile (not index or a *-gallery page),
+// use its own `id` as the subject.
+const looksLikeProfile = p.id && p.id !== 'index' && !/gallery$/i.test(p.id);
+const subject = p.collect_updates_for || (looksLikeProfile ? p.id : null);
+
+if (subject) {
+  const currentSec = state.book.sections[state.secIndex];
+
+  // updates = any page in the same section with subject === subject
+  const updates = (currentSec?.pages || [])
+    .filter(u => u.subject === subject)
+    .slice() // shallow copy so we can sort safely
+    .sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')));
+
+  if (updates.length) {
+    const list = document.createElement('section');
+    list.className = 'updates';
+    list.innerHTML = `
+      <h3>Archive on ${p.heading || subject}</h3>
+      <ul>
+        ${updates.map(u=>{
+          const dt = u.date ? ` — <span class="meta">${u.date}</span>` : '';
+          const chip = u.status ? `<span class="chip">${u.status}</span>` : '';
+          return `<li><a href="#${currentSec.id}:${u.id}">${u.heading||u.id}</a>${dt} ${chip}</li>`;
+        }).join('')}
+      </ul>
+    `;
+    div.appendChild(list);
+  }
+}
+
+
+// If this page is itself an update (it has a subject), add a breadcrumb + metadata header
+if (p.subject) {
+  const metaBar = document.createElement('div');
+  metaBar.className = 'meta';
+  const sec = state.book.sections[state.secIndex];
+  const backHref = `#${sec.id}:${p.subject}`;
+  const bits = [];
+  if (p.date) bits.push(p.date);
+  if (p.status) bits.push(p.status);
+  metaBar.innerHTML = `<p><a href="${backHref}">← Back to profile</a>${bits.length?' · '+bits.join(' · '):''}</p>`;
+  // Insert this small meta bar above the content (right after <div class="hr">)
+  const hr = div.querySelector('.hr');
+  if (hr) hr.insertAdjacentElement('afterend', metaBar);
+}
+
+
+    pagesEl.appendChild(div);
+  });
+
+  // simple slide animation between visible pages
+  if (animate){
+    const all = [...pagesEl.querySelectorAll('.page')];
+    const prev = all.find((_,i)=>i===state._prevPage);
+    const curr = all.find((_,i)=>i===state.pageIndex);
+    if(prev && curr && prev!==curr){
+      prev.classList.remove('active');
+      prev.classList.add('exit-left');
+      requestAnimationFrame(()=>{ curr.classList.add('active'); });
+      setTimeout(()=>prev.classList.remove('exit-left'), 300);
+    }
+  }
+
+  // Intra-binder deep-links (#section or #section:page)
+  pagesEl.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const hash = a.getAttribute('href');
+      if (!hash) return;
+      e.preventDefault();
+      navigateHash(hash);
+    });
+  });
+}
+
+
+  // Intra-binder deep-links (#section or #section:page)
+  pagesEl.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const hash = a.getAttribute('href');
+      if (!hash) return;
+      e.preventDefault();
+      navigateHash(hash);
+    });
+  });
+
+
+function updateTopAndFooter(){
+  titleEl.textContent = state.book.title;
+  const sec = state.book.sections[state.secIndex];
+  sectionPill.textContent = sec ? sec.label : '—';
+
+  const total = sec ? sec.pages.length : 1;
+  idxEl.textContent = `${(state.pageIndex+1)} / ${total}`;
+  prevBtn.disabled = (state.pageIndex<=0);
+  nextBtn.disabled = (state.pageIndex>=total-1);
+}
+
+function renderAll(animate=false){
+  renderTabs();
+  state._prevPage = state.pageIndex;
+  renderPages(animate);
+  updateTopAndFooter();
+}
+
+/* ---------------- Navigation ---------------- */
+prevBtn.onclick = ()=>{ if(state.pageIndex>0){ state._prevPage=state.pageIndex; state.pageIndex--; renderAll(true); syncHash(); } };
+nextBtn.onclick = ()=>{ const sec=state.book.sections[state.secIndex]; if(sec && state.pageIndex<sec.pages.length-1){ state._prevPage=state.pageIndex; state.pageIndex++; renderAll(true); syncHash(); } };
+
+// Keyboard
+document.addEventListener('keydown', (e)=>{
+  if (e.key==='ArrowLeft') prevBtn.click();
+  if (e.key==='ArrowRight') nextBtn.click();
+});
+
+// Hash format: #sectionId or #sectionId:pageId
+function navigateHash(raw){
+  const h = (raw || location.hash || '').replace(/^#/,'').trim();
+  if (!h) return;
+  const [secId, pageId] = h.split(':');
+  const si = findSectionIndex(secId);
+  state.secIndex = si;
+  state.pageIndex = pageId ? findPageIndex(si, pageId) : 0;
+  renderAll(true);
+  if (raw !== location.hash) history.replaceState(null,'', `#${secId}${pageId?':'+pageId:''}`);
+}
+function syncHash(){
+  const sec = state.book.sections[state.secIndex];
+  const page = sec?.pages[state.pageIndex];
+  if (!sec) return;
+  const newHash = `#${sec.id}${page && page.id ? ':'+page.id : ''}`;
+  if (newHash !== location.hash) history.replaceState(null,'', newHash);
+}
+
+// React to back/forward
+window.addEventListener('hashchange', ()=> navigateHash(location.hash));
+
+// === Simple Lightbox for any .gallery-grid and portraits ===
+(function(){
+  const box = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  const closeBtn = box?.querySelector('.lightbox__close');
+
+  document.addEventListener('click', (e)=>{
+    // 1) Gallery thumbnails (existing behavior)
+    const a = e.target.closest('.gallery-grid a');
+    if (a){
+      e.preventDefault();
+      const fullSrc = a.getAttribute('href');
+      const alt = a.querySelector('img')?.getAttribute('alt') || '';
+      if (fullSrc){
+        img.src = fullSrc;
+        img.alt = alt;
+        box.setAttribute('aria-hidden', 'false');
+      }
+      return;
+    }
+
+    // 2) Portraits (ghouls-only, safe for the rest of the binder)
+    const portrait = e.target.closest('img.portrait');
+    if (portrait && document.body.getAttribute('data-book') === 'ghouls'){
+      const fullSrc = portrait.getAttribute('data-full') || portrait.src; // optional hi-res override
+      img.src = fullSrc;
+      img.alt = portrait.getAttribute('alt') || '';
+      box.setAttribute('aria-hidden', 'false');
+    }
+  });
+
+  function closeBox(){
+    box.setAttribute('aria-hidden', 'true');
+    img.src = '';
+    img.alt = '';
+  }
+
+  closeBtn?.addEventListener('click', closeBox);
+  box?.addEventListener('click', (e)=>{ if (e.target === box) closeBox(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeBox(); });
+})();
+
+function escapeHtml(s=''){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function hydrateMarkdown(book){
+  const pages = (book.sections || []).flatMap(s => s.pages || []);
+  await Promise.all(pages.map(async (p)=>{
+    if (!p.src || p.body) return;
+
+    try{
+      const res = await fetch(p.src, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const md = await res.text();
+
+      // If you included marked.js, this will convert MD -> HTML.
+      // If not, you’ll still see the raw markdown (better than “nothing”).
+      p.body = (window.marked?.parse)
+        ? window.marked.parse(md)
+        : `<pre class="md-raw">${escapeHtml(md)}</pre>`;
+    }catch(err){
+      p.body = `<p class="meta">Couldn’t load <code>${p.src}</code><br>${escapeHtml(String(err))}</p>`;
+    }
+  }));
+}
+
+(async function init(){
+  state.book = BOOKS[BOOK_KEY] || BOOKS.aii;
+  document.body.setAttribute('data-book', BOOK_KEY);
+
+  await hydrateMarkdown(state.book);
+
+  if (location.hash) navigateHash(location.hash);
+  else renderAll();
+})();
+
+
+</script>
+<script>
+  if (window.self !== window.top) document.body.classList.add('embedded');
+</script>
+
+</body>
+</html>
+
+

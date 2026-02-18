@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yara’s Journal</title>
+<style>
+:root{
+  --ink:#ececf2; --bg:#0b0b0d; --border:#232739; --accent:#8f4aff;
+  --cardW: clamp(140px, 52%, 240px);
+  --font-stack: system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans", Helvetica, Arial, sans-serif;
+  --entry-label: var(--ink);
+  --entry-key:   #a8afbd;
+}
+
+/* base */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-stack);
+}
+button, input, textarea, select { font: inherit; }
+
+/* shell */
+.journal{
+  height:100dvh; width:100%;
+  background:linear-gradient(180deg,#1a1e2a,#0f131d);
+  border:1px solid var(--border);
+  box-sizing:border-box;
+  display:grid; grid-template-rows: 52px 1fr 96px;
+  overflow:hidden;
+}
+
+.journal__top{
+  display:flex;align-items:center;gap:12px;padding:8px 12px;
+  background:#0e1320;border-bottom:1px solid var(--border)
+}
+.journal__title{font-weight:800;letter-spacing:.2px}
+.topback-btn{
+  margin-left:auto; display:inline-flex; align-items:center; gap:8px;
+  border:1px solid #2a3147; background:#121626; color:#eef;
+  border-radius:10px; padding:6px 10px; cursor:pointer; font-weight:600;
+}
+.topback-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* spread */
+.journal__spread{
+  position:relative;overflow:hidden;display:grid;place-items:center;
+  background:radial-gradient(160% 100% at 20% 0%, rgba(160,123,215,.12), transparent 55%)
+}
+.journal__pages{
+  position:absolute; inset:18px;
+  display:grid; gap:18px; grid-template-columns:1fr 1fr;
+  align-items:stretch;
+  transition:opacity .25s ease, transform .25s ease;
+  opacity:0; transform:translateY(8px);
+}
+.journal__pages.active{opacity:1;transform:translateY(0);z-index:1}
+
+.jpage{
+  background:#0f121a;border:1px solid #1b2132;border-radius:14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03); overflow:hidden;
+  display:grid; grid-template-rows:auto 1fr auto; min-height:0;
+}
+.jpage__head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0f1422;border-bottom:1px solid #1b2132;font-weight:700}
+.jpage__body{padding:14px; overflow:hidden; display:flex; flex-direction:column}
+.jpage__foot{display:flex;justify-content:flex-end;align-items:center;padding:8px 14px;background:#0f1422;border-top:1px solid #1b2132;opacity:.85; min-height:38px}
+
+/* photo block */
+.photo{
+  background:#0b0e17;border:1px solid #2a3147;border-radius:10px;padding:10px 10px 12px;
+  box-shadow:0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  display:flex; gap:12px; align-items:flex-start; min-height:0;
+}
+.thumb-wrap{
+  width: var(--cardW);
+  aspect-ratio: 9 / 19.6;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  background:#0b0e17;
+  border:1px solid #2a3147;
+  flex: 0 0 auto;
+}
+.thumb{
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+@media (max-width: 860px){
+  .thumb-wrap{ width: clamp(160px, 55vw, 280px); }
+}
+.photo .caption{margin-top:8px;font-size:.95rem;color:#cfd3e3}
+
+/* title page */
+.title-page{grid-template-rows:1fr auto;text-align:center;place-items:center}
+.title-page .jpage__body{display:grid;place-items:center}
+.title-badge{font-size:1.6rem;font-weight:900;letter-spacing:.5px;margin-bottom:8px}
+.title-sub{color:#aeb4c5}
+
+/* == entry belt with arrows (matches Armoire pattern) == */
+.entrybar{
+  border-top:1px solid var(--border);
+  background:#0e1320;
+  display:grid; grid-template-columns:48px 1fr 48px; align-items:center;
+  gap:8px; padding:10px;
+}
+.entrystrip{
+  overflow:auto hidden; scroll-snap-type:x mandatory; scrollbar-width:thin;
+  display:flex; gap:12px; padding:6px;
+  border:1px solid #1f2638; border-radius:12px; background:#101626;
+  height:100%;
+}
+.stripBtn{
+  border:1px solid #2a3147; background:#121626; color:var(--ink);
+  border-radius:10px; padding:8px 10px; height:100%; cursor:pointer;
+}
+.stripBtn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.entry{
+  scroll-snap-align:center;
+  flex:0 0 auto; display:flex; gap:8px; align-items:center; cursor:pointer;
+  border:1px solid #22263a; background:#121626; padding:8px; border-radius:12px; min-width:140px;
+  transition:transform .12s ease, border-color .12s ease;
+}
+.entry:hover{transform:translateY(-1px)}
+.entry.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(255,213,74,.1) inset}
+.entry-thumb{width:44px; height:44px; border-radius:8px; background:#0b0e17; border:1px solid #2a3147; overflow:hidden; display:grid; place-items:center;}
+.entry-thumb img{width:100%; height:100%; object-fit:cover; object-position:center;}
+.entry-meta{display:grid; line-height:1.15}
+.entry-meta b{font-weight:700; font-size:.95rem; color: var(--entry-label); }
+.entry-meta small{opacity:.8; color: var(--entry-key); }
+
+/* Lightbox */
+.lightbox{
+  position:fixed; inset:0; background:rgba(4,6,12,.8);
+  display:none; align-items:center; justify-content:center;
+  z-index:9999;
+}
+.lightbox.open{ display:flex; }
+.lightbox img{
+  max-width:95vw; max-height:95vh;
+  object-fit:contain; border-radius:12px; border:1px solid #2a3147;
+  box-shadow:0 10px 30px rgba(0,0,0,.6);
+}
+
+@media (max-width: 860px){ .journal__pages{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <div class="journal" role="application" aria-label="Yara’s Journal">
+    <div class="journal__top">
+      <div class="journal__title">Yara’s Journal</div>
+      <button class="topback-btn" id="topBack" type="button" aria-label="Back to index (Esc)" title="Back (Esc)">← Back</button>
+    </div>
+
+    <div class="journal__spread" id="journalSpread"></div>
+
+    <!-- belt with arrows -->
+    <div class="entrybar" aria-label="Journal entries">
+      <button class="stripBtn" id="idxPrev" aria-label="Previous">←</button>
+      <div class="entrystrip" id="entryStrip"></div>
+      <button class="stripBtn" id="idxNext" aria-label="Next">→</button>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Full image viewer">
+    <img id="lightboxImg" alt="">
+  </div>
+
+<script>
+/* -------- data -------- */
+const DEFAULT_SPREADS = [
+  { type:"title", title:"Yara’s Art Cards", subtitle:"Character Cards and Warding Cards" },
+
+  {
+    left:{
+      img:"assets/journal/Sampaguita_Storm.png",
+      full:"assets/journal/Sampaguita_Storm.png",
+      caption:"I was named after the Filipino Goddess of the night and the Moon, Mayari. Sampaguitas are closely associated to her. In honor of Mayari, there is courtship ritual that takes place on the night of a full moon. Suitors give a corsage of sampaguita to the one they love, and should they accept, they wear it proudly. This night, the full moon bears witness their new pledge of love.",
+      key:"House SSR Card",
+      label:"Sampaguita Storm",
+      foot:"Sampaguita Storm"
+    },
+    right:{
+      img:"assets/journal/Secrets_To_Share.png",
+      full:"assets/journal/Secrets_To_Share.png",
+      caption:"I felt like I needed to transmute the men's House attire with the House's woman's dress! How traditional it is to assign men the military attire and women dresses. Is that just a Frostheim thing or something? Ugh. Well, combine all that with some of my old threads from Aether… and here is a perfect Yara-unique uniform… Hey, why does it feel like someone’s watching me…?",
+      key:"Warding Card",
+      label:"Secrets",
+      foot:"Secrets to Share"
+    }
+  },
+
+  {
+    left:{
+      img:"assets/journal/The_Moon.png",
+      full:"assets/journal/The_Moon.png",
+      caption:"I was born on July 17th, 2000, the night of a full moon and total lunar eclipse. The Moon tarot is not a card of answers; it's one of questions. It appears when the path forward is obscured. What you see may not be as it appears. What you believe may not be truth. The Moon is a reminder to pay attention to instinct and dreams...",
+      key:"2025 Birthday Tarot",
+      label:"The Moon",
+      foot:"The Moon"
+    },
+    right:{
+      img:"assets/journal/Vagrant_Lost_Property.png",
+      full:"assets/journal/Vagrant_Lost_Property.png",
+      caption:"There is not much that I carry, but when I do, it never leaves my side. Why do I hold onto these things? If they were lost, maybe I might feel a bit, too.",
+      key:"Warding Card",
+      label:"Lost Property",
+      foot:"Vagrant Lost Property"
+    }
+  },
+  {
+    left:{
+      img:"assets/journal/Darkwick_Chic.png",
+      full:"assets/journal/Darkwick_Chic.png",
+      caption:"Listen, I know that everyone thinks I just want to be some kind of rebel asshole by wearing pants with the uniform when all the girls wear skirts, but there's a real functional reason why I'd rather wear pants, you know? Plus I... Ugh. Never mind. Just. Do I really have to wear the tie? I do? Fine.",
+      key:"SR Academy Uniform",
+      label:"Darkwick Chic",
+      foot:"Darkwick Chic"
+    },
+    right:{
+      img:"assets/journal/Kenokyon.png",
+      full:"assets/journal/Kenokyon.png",
+      caption:"Kenokyons are shadow dog-creatures whose fur is like vapor, and when it steps, it leaves some kind of impossible liquid gaseous ichor behind. I've seen some over the course of my time at Aether West. Or maybe it's just one? Do all Kenokyons have one black eye and one gold eye? Odd...",
+      key:"Warding Card",
+      label:"Kenokyon",
+      foot:"Kenokyon"
+    }
+  },
+  {
+    left:{
+      img:"assets/journal/Casual_Style.png",
+      full:"assets/journal/Casual_Style.png",
+      caption:"... These Frostheim sycophants were bitching about my ripped jeans and my combat boots cus they're dirty looking... I mean, yeah, they're thrifted... I just rather give a second life to something than buy some high end designer shit, you know?... It's not like I have money to burn, anyway...",
+      key:"R Casual Style",
+      label:"Casual Style",
+      foot:"Casual Style"
+    },
+    right:{
+      img:"assets/journal/Cheldont.png",
+      full:"assets/journal/Cheldont.png",
+      caption:"Cheldonts are maybe like turtles? But no one really knows because all you can see inside the shell are sharp teeth and eyes, and doesn’t peek its head out. No one's really sure if it even has a body. But they're docile creatures, apparently. They only get agressive when you get near their eggs.",
+      key:"Warding Card",
+      label:"Secrets",
+      foot:"Cheldont"
+    }
+  },
+];
+
+/* -------- state & els -------- */
+const state = { spreads: [], idx: 0 };
+const spreadEl  = document.getElementById('journalSpread');
+const topBack   = document.getElementById('topBack');
+
+const entryStrip = document.getElementById('entryStrip');
+const idxPrev    = document.getElementById('idxPrev');
+const idxNext    = document.getElementById('idxNext');
+
+const lightbox   = document.getElementById('lightbox');
+const lightboxImg= document.getElementById('lightboxImg');
+
+/* -------- helpers -------- */
+function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+function centerInStrip(strip, el){
+  if (!strip || !el) return;
+  const a = el.getBoundingClientRect();
+  const t = strip.getBoundingClientRect();
+  const delta = (a.left - t.left) - (t.width/2 - a.width/2);
+  strip.scrollBy({ left: delta, behavior: 'smooth' });
+}
+
+function goHome(){
+  state.idx = 0;
+  renderSpread();
+  highlightActive();
+  updateTopBack();
+}
+
+function updateTopBack(){
+  if (!topBack) return;
+  topBack.style.visibility = (state.idx === 0) ? 'hidden' : 'visible';
+}
+
+/* lightbox */
+function openLightbox(src, alt=''){
+  lightboxImg.src = src;
+  lightboxImg.alt = alt;
+  lightbox.classList.add('open');
+}
+function closeLightbox(){
+  lightbox.classList.remove('open');
+  lightboxImg.src = '';
+  lightboxImg.alt = '';
+}
+lightbox.addEventListener('click', closeLightbox);
+document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeLightbox(); });
+
+/* build page */
+function buildPage(side, label){
+  const footText = (side && typeof side.foot === 'string') ? side.foot : '';
+  const alt = side?.alt || label || 'Card image';
+  const fullSrc = side?.full || side?.img || '';
+
+  const p = document.createElement('section');
+  p.className = 'jpage';
+  p.innerHTML = `
+    <div class="jpage__head">${escapeHTML(label)}</div>
+    <div class="jpage__body">
+      ${side && side.img ? `
+        <div class="photo" style="flex:1 1 auto">
+          <div class="thumb-wrap">
+            <img class="thumb" src="${escapeAttr(side.img)}" data-full="${escapeAttr(fullSrc)}" alt="${escapeAttr(alt)}">
+          </div>
+          <div style="flex:1 1 0; display:flex; flex-direction:column">
+            <div class="caption">${escapeHTML(side.caption||'')}</div>
+          </div>
+        </div>
+      ` : `<p style="opacity:.8">Empty page.</p>`}
+    </div>
+    <div class="jpage__foot">${footText ? `<span>${escapeHTML(footText)}</span>` : ''}</div>
+  `;
+
+  const img = p.querySelector('.thumb');
+  if (img){
+    img.addEventListener('click', ()=>{
+      const src = img.getAttribute('data-full') || img.src;
+      openLightbox(src, img.alt);
+    });
+  }
+  return p;
+}
+
+function titlePage({title, subtitle}){
+  const p = document.createElement('section');
+  p.className = 'jpage title-page';
+  p.innerHTML = `
+    <div class="jpage__body">
+      <div>
+        <div class="title-badge">${escapeHTML(title||'Journal')}</div>
+        <div class="title-sub">${escapeHTML(subtitle||'')}</div>
+      </div>
+    </div>
+    <div class="jpage__foot" style="justify-content:center;"><span>Pick an entry below</span></div>
+  `;
+  return p;
+}
+
+/* render spread */
+function renderSpread(){
+  spreadEl.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'journal__pages active';
+
+  const spread = state.spreads[state.idx];
+  if (spread.type === 'title'){
+    wrap.style.gridTemplateColumns = '1fr';
+    wrap.appendChild(titlePage(spread));
+  } else {
+    wrap.appendChild(buildPage(spread.left,  'Character Card'));
+    wrap.appendChild(buildPage(spread.right, 'Warding Card'));
+  }
+  spreadEl.appendChild(wrap);
+  updateTopBack();
+}
+
+/* render belt */
+function renderEntryBar(){
+  entryStrip.innerHTML = '';
+  state.spreads.forEach((s,i)=>{
+    if (s.type === 'title') return; // skip title on the strip
+
+    const thumbSrc = s.left?.img || s.right?.img || '';
+    const label = s.left?.label || s.right?.label || `Entry ${i}`;
+
+    const btn = document.createElement('button');
+    btn.className = 'entry';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', `Open ${label}`);
+    btn.dataset.index = i;
+
+    btn.innerHTML = `
+      <span class="entry-thumb">${thumbSrc ? `<img src="${escapeAttr(thumbSrc)}" alt="">` : ''}</span>
+      <span class="entry-meta">
+        <b>${escapeHTML(label)}</b>
+        <small>${(s.left?.key || s.right?.key || '').replace(/^card-/, '#')}</small>
+      </span>
+    `;
+    btn.addEventListener('click', ()=>{
+      state.idx = i;
+      renderSpread();
+      highlightActive();
+    });
+    entryStrip.appendChild(btn);
+  });
+  highlightActive();
+  const active = entryStrip.querySelector('.entry.active');
+  if (active) centerInStrip(entryStrip, active);
+}
+
+function highlightActive(){
+  const buttons = entryStrip.querySelectorAll('.entry');
+  buttons.forEach(b=>{
+    const idx = parseInt(b.dataset.index,10);
+    const on = idx === state.idx;
+    b.classList.toggle('active', on);
+    b.tabIndex = on ? 0 : -1;
+    if (on) centerInStrip(entryStrip, b);
+  });
+}
+
+/* arrow click-through (like Armoire) */
+idxPrev.addEventListener('click', ()=> select(state.idx - 1));
+idxNext.addEventListener('click', ()=> select(state.idx + 1));
+
+/* optional: Shift+Wheel for horizontal belt scroll */
+entryStrip.addEventListener('wheel', (e)=>{
+  if (e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+    e.preventDefault();
+    entryStrip.scrollBy({ left: e.deltaY, behavior:'auto' });
+  }
+}, { passive:false });
+
+/* selection */
+function select(i){
+  const max = state.spreads.length - 1;
+  state.idx = Math.max(0, Math.min(max, i));
+  renderSpread();
+  highlightActive();
+}
+
+/* top Back + keyboard */
+topBack.addEventListener('click', goHome);
+document.addEventListener('keydown', (e)=>{
+  if (e.key==='ArrowLeft')  select(state.idx-1);
+  if (e.key==='ArrowRight') select(state.idx+1);
+  if (e.key==='Escape' && state.idx !== 0 && !lightbox.classList.contains('open')) goHome();
+});
+
+/* init */
+(function init(){
+  const q = new URLSearchParams(location.search);
+  const spreadParam = parseInt(q.get('spread')||'0',10);
+
+  state.spreads = DEFAULT_SPREADS;
+  state.idx = Number.isFinite(spreadParam) ? Math.max(0, Math.min(spreadParam, state.spreads.length-1)) : 0;
+
+  renderSpread();
+  renderEntryBar();
+  updateTopBack();
+})();
+</script>
+</body>
+</html>

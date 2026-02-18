@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yara’s Armoire</title>
+
+<style>
+:root{
+  --ink:#e7e3ff;
+  --muted:#aeb4c5;
+  --bg: transparent;
+  --panel: rgba(18,18,22,.86);
+  --panel2: rgba(18,18,22,.74);
+  --border: rgba(42,42,46,.85);
+  --border2: rgba(42,42,46,.55);
+  --accent:#8f4aff;
+
+  --shadow: 0 22px 70px rgba(0,0,0,.65);
+  --radius: 18px;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans", Helvetica, Arial, sans-serif;
+
+  --full-w:  clamp(200px, 60vw, 270px);
+  --chibi-w: clamp(180px, 40vw, 360px);
+
+  --media-foot-gap: 22px; /* tweak 16–40px to taste */
+}
+
+/* page */
+html,body{
+  margin:0; height:100%;
+  background: transparent;
+  color:var(--ink);
+  font:16px/1.5 var(--font);
+}
+/* Only show the armoire's standalone backdrop if NOT embedded */
+body::before{ opacity: 1; }
+
+html.embedded body::before{
+  opacity: 0 !important;
+  display: none !important;
+}
+
+/* Also reduce extra “standalone page” padding when embedded */
+html.embedded .shell{
+  padding: 0 !important;
+  place-items: stretch;
+}
+
+html.embedded .armoire{
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important; /* let the room modal own the rounding */
+  box-shadow: none !important; /* let the room modal own the shadow */
+  border: 0 !important;        /* same reason */
+}
+/* If opened standalone, give it a subtle backdrop */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-1;
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgba(160,123,215,.16), transparent 55%),
+    radial-gradient(90% 90% at 80% 20%, rgba(122,215,255,.10), transparent 60%),
+    linear-gradient(180deg, rgba(10,10,14,.85), rgba(10,10,14,.75));
+  opacity: 1;
+}
+
+/* bubble shell */
+.shell{
+  height:100%;
+  width:100%;
+  display:grid;
+  place-items:center;
+  padding: 18px;
+  box-sizing:border-box;
+}
+
+.armoire{
+  width: min(1100px, 96vw);
+  height: min(900px, 78vh);
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  overflow:hidden;
+
+  display:grid;
+  grid-template-rows: minmax(0,1fr) 92px;
+}
+
+/* spread */
+.armoire__spread{
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  padding: 14px;
+  box-sizing:border-box;
+}
+
+/* pages container */
+.pages{
+  width:100%;
+  height:100%;
+  display:grid;
+  gap:14px;
+  grid-template-columns:1fr 1fr;
+  align-items:stretch;
+
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.pages.active{ opacity:1; transform:translateY(0); }
+
+/* individual page */
+.page{
+  background: rgba(15,18,26,.82);
+  border: 1px solid rgba(27,33,50,.92);
+  border-radius: 14px;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  min-height:0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+.page__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 14px;
+  background: rgba(15,20,34,.86);
+  border-bottom:1px solid rgba(27,33,50,.92);
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.page__body{
+  padding: 14px;
+  overflow:hidden;
+  min-height:0;
+}
+.page__foot{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:8px 14px;
+  background: rgba(15,20,34,.86);
+  border-top:1px solid rgba(27,33,50,.92);
+  opacity:.9;
+  min-height:38px;
+  color: var(--muted);
+}
+
+/* media frame */
+.media{
+  height:100%;
+  min-height:0;
+  background: rgba(11,14,23,.72);
+  border: 1px solid rgba(42,49,71,.85);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  padding: 10px;
+  box-sizing:border-box;
+
+  display:grid;
+  place-items:center;
+}
+
+/* create a little breathing room above the footer */
+.page__body .media{
+  height: calc(100% - var(--media-foot-gap));
+}
+
+/* shared wrappers */
+.full-wrap,
+.chibi-wrap{
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 10px;
+  overflow: hidden;
+  display:grid;
+  place-items:center;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.full-wrap{
+  max-width: var(--full-w);
+  width: 100%;
+  max-height: 100%;
+  overflow: visible;
+}
+.chibi-wrap{
+  width: var(--chibi-w);
+  aspect-ratio: 1 / 1;
+}
+
+.full-wrap img{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  object-position:center;
+  cursor: zoom-in;
+}
+.chibi-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  display:block;
+  cursor: zoom-in;
+}
+
+/* cover page */
+.cover{ grid-template-columns:1fr !important; }
+.cover .page{ grid-template-rows: 1fr auto; text-align:center; place-items:center; }
+.cover .page__body{ display:grid; place-items:center; padding:24px; }
+.cover .title-badge{ font-size:1.9rem; font-weight:900; letter-spacing:.5px; margin-bottom:8px; color: #d8c8ff; }
+.cover .title-sub{ color:var(--muted); }
+.cover .page__foot{ justify-content:center; }
+
+/* belt */
+.indexbar{
+  border-top: 1px solid var(--border2);
+  background: rgba(14,19,32,.70);
+  display:grid;
+  grid-template-columns:48px 1fr 48px;
+  align-items:center;
+  gap:8px;
+  padding: 10px;
+  box-sizing:border-box;
+}
+.strip{
+  overflow:auto hidden;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:thin;
+  display:flex;
+  gap:12px;
+  padding:6px;
+  border:1px solid rgba(31,38,56,.9);
+  border-radius: 12px;
+  background: rgba(16,22,38,.76);
+  height:100%;
+}
+.stripBtn{
+  border:1px solid rgba(42,49,71,.9);
+  background: rgba(18,22,38,.92);
+  color:var(--ink);
+  border-radius: 10px;
+  padding: 8px 10px;
+  height:100%;
+  cursor:pointer;
+  font-weight:800;
+}
+.stripBtn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.index-item{
+  scroll-snap-align:center;
+  flex:0 0 auto;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  cursor:pointer;
+  border:1px solid rgba(34,38,58,.95);
+  background: rgba(18,22,38,.92);
+  padding: 8px 10px;
+  border-radius: 12px;
+  min-width: 160px;
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.index-item:hover{ transform:translateY(-1px); }
+.index-item.active{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(143,74,255,.18) inset;
+}
+
+.index-thumb{
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: rgba(11,14,23,.72);
+  border:1px solid rgba(42,49,71,.85);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  flex: 0 0 auto;
+}
+.index-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+}
+
+.index-meta{
+  display:grid;
+  line-height:1.15;
+  min-width: 0;
+}
+.index-meta b{
+  font-weight:900;
+  font-size:.95rem;
+  color:#fff;
+}
+.index-meta small{
+  color:#9aa6c7;
+  opacity:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  max-width: 220px;
+}
+
+/* lightbox */
+.lightbox{
+  position:fixed;
+  inset:0;
+  background:rgba(4,6,12,.82);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.lightbox.open{ display:flex; }
+.lightbox img{
+  max-width:95vw;
+  max-height:95vh;
+  object-fit:contain;
+  border-radius: 12px;
+  border:1px solid rgba(42,49,71,.95);
+  box-shadow: 0 10px 30px rgba(0,0,0,.6);
+}
+
+/* responsive */
+@media (max-width: 860px){
+  .armoire{ width:min(980px,96vw); height:min(900px, 82vh); }
+  .pages{ grid-template-columns: 1fr; }
+}
+@media (max-height: 720px){
+  .armoire{ height:min(900px, 86vh); }
+  .full-wrap{ max-height: 80vh; }
+}
+
+/* reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .pages{ transition:none; }
+}
+</style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="armoire" role="application" aria-label="Yara’s Armoire">
+      <div class="armoire__spread" id="spread"></div>
+
+      <div class="indexbar" aria-label="Looks index">
+        <button class="stripBtn" id="idxPrev" aria-label="Previous">←</button>
+        <div class="strip" id="indexStrip"></div>
+        <button class="stripBtn" id="idxNext" aria-label="Next">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Full image viewer">
+    <img id="lightboxImg" alt="">
+  </div>
+
+<script>
+   document.documentElement.classList.toggle('embedded', window.self !== window.top);
+
+/* ===== looks ===== */
+const LOOKS = [
+  {
+    label: "Sampaguita Storm",
+    key:   "SSR House Card",
+    full:  { img: "assets/armoire/full/house-full.png",
+             big: "assets/armoire/full/house-full.png",
+             caption: "" },
+    chibi: { img: "assets/armoire/chibi/house-chibi.png",
+             big: "assets/armoire/chibi/house-chibi.png",
+             caption: "" }
+  },
+  {
+    label: "Darkwick Chic",
+    key:   "SR Academy Uniform",
+    full:  { img: "assets/armoire/full/uniform-full.png",
+             big: "assets/armoire/full/uniform-full.png",
+             caption: "" },
+    chibi: { img: "assets/armoire/chibi/uniform-chibi.png",
+             big: "assets/armoire/chibi/uniform-chibi.png",
+             caption: "" }
+  },
+  {
+    label: "Casual Style",
+    key:   "R Casual Wear",
+    full:  { img: "assets/armoire/full/casual-full.png",
+             big: "assets/armoire/full/casual-full.png",
+             caption: "" },
+    chibi: { img: "assets/armoire/chibi/casual-chibi.png",
+             big: "assets/armoire/chibi/casual-chibi.png",
+             caption: "" }
+  },
+  {
+    label: "A Fleeting Moment",
+    key:   "SSR City (Night Out) Theme",
+    full:  { img: "assets/armoire/full/city-full.png",
+             big: "assets/armoire/full/city-full.png",
+             caption: "" },
+    chibi: { img: "assets/armoire/chibi/city-chibi.png",
+             big: "assets/armoire/chibi/city-chibi.png",
+             caption: "" }
+  },
+];
+
+/* ===== state & els ===== */
+const state = { idx: 0 }; // 0 = cover, 1..N = looks
+const spread = document.getElementById('spread');
+
+const indexStrip = document.getElementById('indexStrip');
+const idxPrev = document.getElementById('idxPrev');
+const idxNext = document.getElementById('idxNext');
+
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lightboxImg');
+
+/* helpers */
+function centerInStrip(strip, el){
+  if (!strip || !el) return;
+  const a = el.getBoundingClientRect();
+  const t = strip.getBoundingClientRect();
+  const delta = (a.left - t.left) - (t.width/2 - a.width/2);
+  strip.scrollBy({ left: delta, behavior: 'smooth' });
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+
+/* lightbox */
+function openLightbox(src, alt=''){
+  lbImg.src = src;
+  lbImg.alt = alt;
+  lb.classList.add('open');
+}
+function closeLightbox(){
+  lb.classList.remove('open');
+  lbImg.src = '';
+  lbImg.alt = '';
+}
+lb.addEventListener('click', closeLightbox);
+
+document.addEventListener('keydown', (e)=>{
+  if (e.key === 'Escape'){
+    if (lb.classList.contains('open')) { closeLightbox(); return; }
+    if (state.idx !== 0) select(0);
+  }
+});
+
+/* cover renderer */
+function renderCover(){
+  spread.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'pages active cover';
+
+  const page = document.createElement('section');
+  page.className = 'page';
+  page.innerHTML = `
+    <div class="page__body">
+      <div>
+        <div class="title-badge">Yara’s Armoire</div>
+        <div class="title-sub">Looks & Chibis</div>
+      </div>
+    </div>
+    <div class="page__foot"><span>Pick a look below</span></div>
+  `;
+
+  wrap.appendChild(page);
+  spread.appendChild(wrap);
+}
+
+/* look renderer */
+function renderLook(look){
+  spread.innerHTML = '';
+  const pages = document.createElement('div');
+  pages.className = 'pages active';
+
+  const left = document.createElement('section');
+  left.className = 'page';
+  left.innerHTML = `
+    <div class="page__head">Full Body</div>
+    <div class="page__body">
+      <div class="media">
+        <div class="full-wrap">
+          <img src="${look.full.img}" alt="${look.label} — full body" data-big="${look.full.big||look.full.img}">
+        </div>
+        ${look.full.caption ? `<div class="info">${look.full.caption}</div>` : ``}
+      </div>
+    </div>
+    <div class="page__foot"><span>${look.key||''}</span></div>
+  `;
+
+  const right = document.createElement('section');
+  right.className = 'page';
+  right.innerHTML = `
+    <div class="page__head">Chibi</div>
+    <div class="page__body">
+      <div class="media">
+        <div class="chibi-wrap">
+          <img src="${look.chibi.img}" alt="${look.label} — chibi" data-big="${look.chibi.big||look.chibi.img}">
+        </div>
+        ${look.chibi.caption ? `<div class="info">${look.chibi.caption}</div>` : ``}
+      </div>
+    </div>
+    <div class="page__foot"><span>${look.label||''}</span></div>
+  `;
+
+  left.querySelector('img').addEventListener('click', (e)=> openLightbox(e.target.dataset.big, e.target.alt));
+  right.querySelector('img').addEventListener('click', (e)=> openLightbox(e.target.dataset.big, e.target.alt));
+
+  pages.appendChild(left);
+  pages.appendChild(right);
+  spread.appendChild(pages);
+}
+
+/* render spread */
+function render(){
+  if (state.idx === 0) renderCover();
+  else renderLook(LOOKS[state.idx - 1]);
+}
+
+/* belt */
+function renderIndex(){
+  indexStrip.innerHTML = '';
+  LOOKS.forEach((look, i)=>{
+    const pageIndex = i + 1; // skip cover
+    const btn = document.createElement('button');
+    btn.className = 'index-item';
+    btn.type = 'button';
+    btn.dataset.index = pageIndex;
+
+    const thumb = look.chibi?.img || look.full?.img || '';
+    btn.innerHTML = `
+      <span class="index-thumb">${thumb ? `<img src="${thumb}" alt="">` : ''}</span>
+      <span class="index-meta">
+        <b>${look.label || `Look ${pageIndex}`}</b>
+        <small>${look.key || ''}</small>
+      </span>
+    `;
+
+    btn.addEventListener('click', ()=> select(pageIndex));
+    indexStrip.appendChild(btn);
+  });
+
+  highlight();
+  const active = indexStrip.querySelector('.index-item.active');
+  if (active) centerInStrip(indexStrip, active);
+}
+
+function highlight(){
+  document.querySelectorAll('.index-item').forEach((el)=>{
+    const idx = parseInt(el.dataset.index, 10);
+    const on = (idx === state.idx);
+    el.classList.toggle('active', on);
+    if (on) centerInStrip(indexStrip, el);
+  });
+}
+
+/* selection */
+function select(i){
+  const max = LOOKS.length;
+  state.idx = clamp(i, 0, max);
+  render();
+  highlight();
+
+  idxPrev.disabled = (state.idx <= 0);
+  idxNext.disabled = (state.idx >= max);
+}
+
+/* controls */
+idxPrev.addEventListener('click', ()=> select(state.idx - 1));
+idxNext.addEventListener('click', ()=> select(state.idx + 1));
+
+document.addEventListener('keydown', (e)=>{
+  if (lb.classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  select(state.idx - 1);
+  if (e.key === 'ArrowRight') select(state.idx + 1);
+});
+
+/* init */
+renderIndex();
+select(0);
+</script>
+</body>
+</html>

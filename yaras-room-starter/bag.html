@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Yara’s Bag</title>
+<style>
+:root{
+  --ink:#ececf2; --bg:#0b0b0d; --border:#232739; --accent:#8f4aff;
+  --muted:#a8afbd; --cardW:clamp(140px,28vw,220px);
+  --font: system-ui,-apple-system,"Segoe UI",Roboto,Inter,"Noto Sans",Arial,sans-serif;
+  --beltH: 140px;
+--stage-gap: 24px;    /* tweak this to move the frame up/down */
+}
+
+/* reset + no page scroll inside iframe */
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{
+  margin:0; height:100%;
+  background:transparent; color:var(--ink);
+  font:16px/1.45 var(--font);
+  overflow:hidden;
+}
+
+/* ===== Shell ===== */
+.bag{
+  width:min(980px,96vw);
+  height:min(680px,90vh);
+  margin:4vh auto;
+  background:linear-gradient(180deg,#141826,#0c101a);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
+  display:grid;
+  grid-template-rows:54px 1fr var(--beltH);
+  overflow:hidden;
+}
+/* fill when embedded in modal iframe */
+.embedded .bag{ width:100%; height:100%; margin:0; border-radius:0; box-shadow:none; max-height:none; }
+
+/* ===== TOP BAR (restored) ===== */
+.bag__top{
+  display:flex; align-items:center; gap:12px;
+  padding:8px 12px;
+  background:#0e1320;
+  border-bottom:1px solid var(--border);
+}
+.bag__title{ font-weight:800; letter-spacing:.2px; }
+.bag__btn{
+  margin-left:auto;
+  border:1px solid #2a3147;
+  background:#121626;
+  color:var(--ink);
+  border-radius:10px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-weight:600;
+}
+.bag__btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ===== Stage ===== */
+.stage{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:16px; align-items:stretch; padding:16px;
+  overflow:hidden; min-height:0;
+}
+.stage__media{ display:grid; place-items:center; background:#0b0f18; border:1px solid #1f2638; border-radius:12px; position:relative; }
+.stage__media img{ max-width:100%; max-height:100%; aspect-ratio:9/16; object-fit:contain; border-radius:10px; }
+.stage__meta{ display:flex; flex-direction:column; background:#0b0f18; border:1px solid #1f2638; border-radius:12px; padding:14px; }
+.tag{ display:inline-block; background:#121a2b; border:1px solid #24304a; color:#d8ddf0; border-radius:999px; font-size:.85rem; padding:4px 10px; margin-bottom:10px; }
+.item__title{ font-weight:800; margin:0 0 6px; }
+.item__caption{ color:#cfd3e3; white-space:pre-wrap; }
+
+/* ===== Belt ===== */
+.belt{
+  display:grid; grid-template-columns:48px 1fr 48px;
+  align-items:center; gap:8px; padding:10px;
+  background:#0e1320; border-top:1px solid var(--border);
+  height:var(--beltH);
+}
+.belt__btn{
+  border:1px solid #2a3147; background:#121626; color:var(--ink);
+  border-radius:10px; padding:8px 10px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; height:100%;
+}
+.belt__btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.tray{
+  overflow:auto hidden; scroll-snap-type:x mandatory; scrollbar-width:thin;
+  display:flex; gap:12px; padding:6px;
+  border:1px solid #1f2638; border-radius:12px; background:#101626;
+  height:100%;
+}
+.tile{
+  flex:0 0 auto; height:calc(100% - 12px); aspect-ratio:1/1; width:auto;
+  position:relative; border-radius:12px; overflow:hidden; scroll-snap-align:center;
+  border:1px solid #25314a; background:#0b0e17; cursor:pointer;
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.tile:hover{ transform:translateY(-2px); }
+.tile.active{ border-color:var(--accent); box-shadow:0 0 0 1px rgba(255,213,74,.2) inset; }
+.tile img{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+.tile__label{
+  position:absolute; left:8px; right:8px; bottom:8px;
+  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.55));
+  color:#e9ecf6; text-shadow:0 1px 2px rgba(0,0,0,.7);
+  font-weight:700; padding:24px 6px 6px; border-radius:8px;
+}
+
+/* Lightbox */
+.lightbox{ position:fixed; inset:0; background:rgba(4,6,12,.8); display:none; align-items:center; justify-content:center; z-index:9999; }
+.lightbox.open{ display:flex; }
+.lightbox img{ max-width:95vw; max-height:95vh; object-fit:contain; border-radius:12px; border:1px solid #2a3147; box-shadow:0 10px 30px rgba(0,0,0,.6); }
+
+/* Responsive tweaks */
+@media (max-width:880px){
+  :root{ --beltH:120px; }
+  .stage{ grid-template-columns:1fr; grid-template-rows:minmax(240px,46vh) 1fr; }
+}
+
+
+
+  /* ---------- Lightbox ---------- */
+  .lightbox{ position:fixed; inset:0; background:rgba(4,6,12,.8); display:none; align-items:center; justify-content:center; z-index:9999}
+  .lightbox.open{ display:flex }
+  .lightbox img{ max-width:95vw; max-height:95vh; object-fit:contain; border-radius:12px; border:1px solid #2a3147; box-shadow:0 10px 30px rgba(0,0,0,.6) }
+
+  @media (max-width: 880px){
+    .stage{ grid-template-columns:1fr; grid-template-rows:minmax(240px, 46vh) 1fr }
+  }
+
+  /* make the middle row shrinkable (you already have min-height:0 on .stage) */
+.bag{ grid-template-rows: 54px minmax(0,1fr) var(--beltH); }
+
+/* give the media box some clearance above the belt */
+.stage__media{
+  height: calc(100% - var(--stage-gap));
+  min-height: 0;
+}
+
+/* keep the image contained inside that box (no cropping) */
+.stage__media img{
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+/* keep both stage panels the same height, with the same clearance above the belt */
+.stage > *{
+  height: calc(100% - var(--stage-gap));
+  min-height: 0;                 /* allow shrinking in the grid */
+}
+
+/* (already present, but keep) */
+.bag{ grid-template-rows: 54px minmax(0,1fr) var(--beltH); }
+
+.item__caption { color:#cfd3e3; white-space:normal; } /* switch from pre-wrap */
+.item__caption p { margin:0 0 .8em; }
+.item__caption p:last-child { margin-bottom:0; }
+
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+
+<script>
+  // If opened inside your modal iframe, stretch to fit
+  if (window.self !== window.top) document.body.classList.add('embedded');
+</script>
+
+</head>
+<body>
+
+<div class="bag" role="dialog" aria-modal="true" aria-label="Yara’s Bag">
+  <div class="bag__top">
+    <div class="bag__title">Yara’s Bag</div>
+  </div>
+
+  <div class="stage">
+    <div class="stage__media"><img id="stageImg" alt=""></div>
+    <div class="stage__meta">
+      <span class="tag" id="stageTag"></span>
+      <h3 class="item__title" id="stageTitle"></h3>
+      <div class="item__caption" id="stageCaption"></div>
+    </div>
+  </div>
+
+  <div class="belt">
+    <button class="belt__btn" id="prevBtn" aria-label="Previous">←</button>
+    <div class="tray" id="tray" tabindex="0" aria-label="Items"></div>
+    <button class="belt__btn" id="nextBtn" aria-label="Next">→</button>
+  </div>
+</div>
+
+<!-- Lightbox (click stage image) -->
+<div class="lightbox" id="lightbox"><img id="lbImg" alt=""></div>
+
+<script>
+  // If we’re inside an iframe, switch to embedded layout
+  if (window.self !== window.top) {
+    document.body.classList.add('embedded');
+  }
+</script>
+
+<script>
+/* ---------- Data: each item in her bag ---------- */
+const ITEMS = [
+  {
+    title: "Aoi's Queen",
+    tag: "Keepsake",
+    img: "assets/bag/bag-1.png",
+    full:"assets/bag/bag-1.png",
+    caption_src: "content/bag/queen.md"
+  },
+  {
+    title: "Shadow Balisong",
+    tag: "Artifact",
+    img: "assets/bag/bag-2.png",
+    full:"assets/bag/bag-2.png",
+    caption_src: "content/bag/balisong.md"
+
+  },
+  {
+    title: "Dad's Lighter",
+    tag: "Keepsake",
+    img: "assets/bag/bag-3.png",
+    full:"assets/bag/bag-3.png",
+    caption_src: "content/bag/lighter.md"
+  },
+  {
+    title: "Mom and Dad's Wedding Bands",
+    tag: "Keepsake",
+    img: "assets/bag/bag-4.png",
+    full:"assets/bag/bag-4.png",
+    caption_src: "content/bag/rings.md"
+  },
+  {
+    title: "Old Guitar Pick",
+    tag: "Keepsake",
+    img: "assets/bag/bag-5.png",
+    full:"assets/bag/bag-5.png",
+    caption_src: "content/bag/pick.md"
+  },
+  {
+    title: "Rune's Drumsticks",
+    tag: "Keepsake",
+    img: "assets/bag/bag-6.png",
+    full:"assets/bag/bag-6.png",
+    caption_src: "content/bag/drumsticks.md"
+  },
+];
+
+const state = { i: 0 };
+
+const tray = document.getElementById('tray');
+const stageImg = document.getElementById('stageImg');
+const stageTitle = document.getElementById('stageTitle');
+const stageCaption = document.getElementById('stageCaption');
+const stageTag = document.getElementById('stageTag');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+
+/* ---------- Rendering ---------- */
+function renderTray(){
+  tray.innerHTML = '';
+  ITEMS.forEach((it, idx)=>{
+    const tile = document.createElement('button');
+    tile.className = 'tile';
+    tile.type = 'button';
+    tile.setAttribute('aria-label', `Open ${it.title}`);
+    tile.dataset.index = idx;
+    tile.innerHTML = `
+      <img loading="lazy" src="${it.img}" alt="">
+      <span class="tile__label">${it.title}</span>
+    `;
+    tile.addEventListener('click', ()=> select(idx)); // no tray.focus()
+    tray.appendChild(tile);
+  });
+}
+
+async function loadCaption(it){
+  // Priority: caption_src (markdown file) -> caption (existing inline HTML/text) -> empty
+  if (it.caption_src) {
+    try {
+      const res = await fetch(it.caption_src, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${it.caption_src}`);
+      const md = await res.text();
+      return marked.parse(md);
+    } catch (err) {
+      console.error(err);
+      return `<p><em>Caption failed to load.</em></p>`;
+    }
+  }
+
+  const raw = it.caption || '';
+  // keep your existing “html vs plain text” behavior
+  return /<\s*(p|em|strong|br)\b/i.test(raw) ? raw : (raw ? `<p>${raw}</p>` : '');
+}
+
+async function renderStage(){
+  const it = ITEMS[state.i] || ITEMS[0];
+
+  stageImg.src = it.img;
+  stageImg.alt = it.title;
+  stageTitle.textContent = it.title;
+  stageTag.textContent = it.tag || '';
+
+  // show a quick placeholder so it feels snappy
+  stageCaption.innerHTML = `<p>Loading…</p>`;
+  stageCaption.innerHTML = await loadCaption(it);
+
+  document.querySelectorAll('.tile')
+    .forEach((t,i)=> t.classList.toggle('active', i===state.i));
+
+  const active = document.querySelector(`.tile[data-index="${state.i}"]`);
+  if (active) {
+    const a = active.getBoundingClientRect();
+    const t = tray.getBoundingClientRect();
+    const delta = (a.left - t.left) - (t.width / 2 - a.width / 2);
+    tray.scrollBy({ left: delta, behavior: 'smooth' });
+  }
+
+  prevBtn.disabled = (state.i<=0);
+  nextBtn.disabled = (state.i>=ITEMS.length-1);
+}
+
+/* ---------- Selection / Navigation ---------- */
+async function select(i){
+  state.i = Math.max(0, Math.min(ITEMS.length-1, i));
+  await renderStage();
+}
+prevBtn.addEventListener('click', ()=> select(state.i-1));
+nextBtn.addEventListener('click', ()=> select(state.i+1));
+document.addEventListener('keydown', (e)=>{
+  if (e.key==='ArrowLeft') select(state.i-1);
+  if (e.key==='ArrowRight') select(state.i+1);
+});
+
+/* ---------- Lightbox ---------- */
+stageImg.addEventListener('click', ()=>{
+  const it = ITEMS[state.i];
+  lbImg.src = it.full || it.img;
+  lbImg.alt = it.title;
+  lb.classList.add('open');
+});
+lb.addEventListener('click', ()=> lb.classList.remove('open'));
+document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') lb.classList.remove('open'); });
+
+/* ---------- Init ---------- */
+renderTray();
+select(0);
+
+
+</script>
+</body>
+</html>

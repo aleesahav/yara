@@ -1,0 +1,5 @@
+- <a href="#branches:darkwick"><span class="canon">Darkwick Academy (Japan)</span></a>
+- <a href="#branches:emrys"><span class="canon">Emrys Academy (Britain)</span></a>
+- <a href="#branches:noir">Noir Academy (Romania)</a>
+- <a href="#branches:sidereal">Sidereal Academy (France)</a>
+- <a href="#branches:aether">Aether Academy (United States)</a>
