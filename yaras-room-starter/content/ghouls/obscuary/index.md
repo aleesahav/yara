@@ -1,3 +1,0 @@
-- [Edward Hart — Profile](#obscuary:edward) · [Gallery](#obscuary:edward-gallery)
-- [Rui Mizuki — Profile](#obscuary:rui) · [Gallery](#obscuary:rui-gallery)
-- [Lyca Colt — Profile](#obscuary:lyca) · [Gallery](#obscuary:lyca-gallery)

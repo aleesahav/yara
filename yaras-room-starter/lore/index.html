@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Yara’s Bookshelf</title>
+
+<style>
+  :root{
+    --accent:#8f4aff;
+    --bg:#0b0b0d;
+    --ink:#eaeaea;
+    --gold:#ffd54a;
+    --panel-bg: rgba(18,18,22,.86);
+    --panel-bd: rgba(42,42,46,.85);
+    --shadow: 0 22px 70px rgba(0,0,0,.65);
+
+    --music-embed-h: 75px;
+    --music-header-h: 36px;
+  }
+
+  html{ margin:0; height:100%; background:transparent; }
+  body{
+    margin:0; min-height:100%;
+    background:transparent; color:var(--ink);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1;
+    /* match Room behavior */
+    background: var(--bg) url("assets/wt_bg.png") no-repeat center/cover;
+  }
+
+  .wrap{
+    max-width: min(1700px, 96vw);
+    margin: 0 auto;
+    padding: clamp(12px, 2vw, 24px);
+    position:relative;
+  }
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:12px;
+  }
+  header h1{ margin:0; font-size:clamp(18px,3vw,24px); letter-spacing:.2px; }
+
+  .btn{
+    appearance:none; border:1px solid #2a2a2e; background:#151518; color:#ddd;
+    padding:.5rem .75rem; border-radius:8px; cursor:pointer;
+  }
+  .btn:hover{ border-color:#3a3a40; }
+
+  .stage{
+    width:100%; height:auto; display:block;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+
+  body.modal-open{ overflow:hidden; }
+
+  /* Right-side Back button */
+.back-home{
+  position:absolute;
+  z-index:50;
+  right: calc(50% - (min(1700px, 96vw) / 2) - 16px);
+  top: 50%;
+  transform: translate(100%, -50%);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid var(--gold);
+  background:rgba(255,213,74,.12);
+  color:var(--ink);
+  font-weight:700;
+  font-size:14px;
+  backdrop-filter: blur(3px);
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  text-decoration:none;
+}
+.back-home:hover{
+  transform: translate(100%, -50%) translateX(2px);
+  background:rgba(255,213,74,.2);
+}
+.back-home svg{
+  width:18px;
+  height:18px;
+}
+
+  /* Hotspots and overlays */
+  a[role="link"] .hotspot{
+    fill: rgba(255,255,255,0.001);
+    stroke: transparent;
+    stroke-width: 2;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .hover-visual{
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease;
+    transform-origin:center;
+    transform-box:fill-box;
+  }
+  .hs:hover .hover-visual,
+  .hs:focus-within .hover-visual{ opacity:1; }
+
+  @media (prefers-reduced-motion: reduce){
+    .hover-visual{ transition:none; }
+  }
+  .hs.active .hover-visual{ opacity:1 !important; }
+
+  /* SVG click border cleanup */
+  svg.stage a[role="link"]:focus{ outline:none; }
+  svg.stage a[role="link"]:focus-visible{ outline:0; }
+  svg.stage .hotspot:focus, svg.stage .hotspot:focus-visible{ outline:0; }
+  image.hover-visual{ outline:0 !important; }
+  svg.stage a[role="link"]{ -webkit-tap-highlight-color: transparent; }
+
+  /* Debug */
+  .debug a[role="link"] .hotspot{ stroke:#ff61a6 !important; fill:rgba(255,97,166,.12) !important; }
+  .debug .hover-visual{ outline:1px dashed rgba(97,196,255,.8); outline-offset:-1px; opacity:.8 !important; }
+
+  footer{ margin:16px 0 40px; opacity:.65; font-size:.9rem; }
+
+  /* Dev-mode visibility toggles */
+  .dev-only{ display:none; }
+  body.dev .dev-only{ display:flex; }
+  body.dev footer.dev-only{ display:block; }
+
+  /* Position mode */
+  .pos-mode .hover-visual{ opacity:.9 !important; outline:1px dashed #7ad; outline-offset:-1px; pointer-events:auto; cursor:move; }
+  .pos-hud{
+    position: fixed; bottom: 12px; left: 12px; z-index: 2000;
+    background: #0f1116; border: 1px solid #2a2a2e; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; color: #eaeaea;
+  }
+  .pos-hud code{ background:#12151e; padding:2px 4px; border-radius:4px; }
+  .pos-hud button{ margin-left:8px; }
+
+  /* =========================================
+     THOUGHT BUBBLE (anchored to SVG hotspot)
+     Same as Room
+     ========================================= */
+  .thought-pop{
+    position: fixed;
+    z-index: 1600;
+    display: none;
+    width: min(520px, calc(100vw - 28px));
+    pointer-events: auto;
+    transform: translate(-50%, -100%);
+  }
+  .thought-pop.open{ display:block; }
+
+  .thought-pop .bubble{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-bd);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    padding: 12px 14px;
+    color: #e7e3ff;
+    position: relative;
+  }
+  .thought-pop .row{ display:flex; gap:12px; align-items:flex-start; }
+  .thought-pop .portrait{
+    width:64px; height:64px;
+    border-radius:999px;
+    overflow:hidden;
+    background:#0b0d12;
+    border:1px solid #2a3147;
+    flex:0 0 auto;
+  }
+  .thought-pop .portrait img{ width:100%; height:100%; object-fit:cover; }
+
+  .thought-pop .text{
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size:.95rem;
+    line-height:1.55;
+    opacity:.95;
+  }
+  .thought-pop .text p{
+    margin:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .thought-pop .text em{ color:#f1baff; font-style:italic; }
+
+  .thought-pop .close{
+    position:absolute;
+    right:10px; top:8px;
+    border:0;
+    background:transparent;
+    color: var(--accent);
+    font-weight:900;
+    font-size:18px;
+    cursor:pointer;
+    line-height:1;
+  }
+
+  .thought-pop .arrow{
+    position:absolute;
+    left:50%;
+    bottom:-10px;
+    width:18px;
+    height:18px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-bd);
+    border-bottom: 1px solid var(--panel-bd);
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+  }
+
+  /* ===============================
+   BINDER MODAL (iframe overlay)
+   =============================== */
+/* ===============================
+   BINDER MODAL (iframe overlay)
+   =============================== */
+.binderModal{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  display:none;
+  place-items:center;
+  padding: clamp(10px, 2vw, 18px);
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.binderModal.open{ display:grid; }
+
+.binderModal__panel{
+  width:min(1200px, 96vw);
+  height:min(860px, 94vh);
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(42,42,46,.85);
+  background: #0b0b0d;
+  box-shadow: 0 22px 70px rgba(0,0,0,.65);
+
+  /* ✅ KEY FIX: bar is NOT overlaying the iframe anymore */
+  display:grid;
+  grid-template-rows: auto 1fr;
+  min-height:0;
+}
+
+.binderModal__bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  padding:10px;
+  border-bottom:1px solid rgba(42,42,46,.85);
+  background: rgba(13,17,26,.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  /* ✅ no overlay tricks needed */
+  position:static;
+  z-index:auto;
+  pointer-events:auto;
+}
+
+.binderModal__title{
+  font-weight:800;
+  letter-spacing:.2px;
+  color:#eaeaea;
+  text-shadow: 0 6px 18px rgba(0,0,0,.6);
+  padding:8px 10px;
+  border-radius:999px;
+  background: rgba(15,15,20,.35);
+  border:1px solid rgba(42,42,46,.55);
+  min-width:0;
+
+  /* prevent long titles from wrecking layout */
+  max-width: calc(100% - 120px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.binderModal__close{
+  appearance:none;
+  border:1px solid rgba(255,213,74,.65);
+  background: rgba(255,213,74,.12);
+  color:#eaeaea;
+  border-radius:999px;
+  padding:8px 12px;
+  cursor:pointer;
+  font-weight:800;
+  flex:0 0 auto;
+}
+.binderModal__close:hover{ background: rgba(255,213,74,.2); }
+
+.binderModal__frame{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  background:#0b0b0d;
+
+  /* ✅ important for grid children */
+  min-height:0;
+}
+
+</style>
+</head>
+
+<body>
+ <a class="back-home" href="../index.html" aria-label="Back to Room">
+  Back to Room
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 12h14"></path>
+    <path d="M13 5l7 7-7 7"></path>
+  </svg>
+</a>
+
+
+  <!-- Floating thought bubble (same structure as Room) -->
+  <div id="thoughtPop" class="thought-pop" role="dialog" aria-live="polite" aria-label="Thought">
+    <div class="bubble">
+      <button class="close" type="button" id="thoughtClose" aria-label="Close">✕</button>
+      <div class="row">
+        <div class="portrait">
+          <img id="thoughtImg" src="../assets/ui/yara-portrait.png" alt="Yara">
+        </div>
+        <div class="text">
+          <p id="thoughtText"><em>“…”</em></p>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <h1>Yara’s Bookshelf</h1>
+
+      <div id="devTools" class="dev-only" style="gap:8px; align-items:center;">
+        <button id="toggleDebug" class="btn" type="button">Toggle Debug</button>
+        <button id="posMode" class="btn" type="button">Position Overlays</button>
+      </div>
+
+      <span style="opacity:.7; font-size:.95rem;">Hover or tap books to reveal lore.</span>
+    </header>
+
+    <svg class="stage" viewBox="0 0 3600 2400" aria-labelledby="title desc" role="img">
+      <title id="title">Yara’s Bookshelf — interactive</title>
+      <desc id="desc">Hotspots reveal overlays; some open thought bubbles.</desc>
+
+      <!-- Base scene -->
+      <image href="assets/yaras-bookshelf.png" x="0" y="0" width="3600" height="2400" />
+
+      <!-- SATAN (thought bubble) -->
+      <g class="hs hs--satan">
+        <a role="link" tabindex="0" href="#satan" data-bubble-target="satan" aria-label="Satan thought">
+          <polygon class="hotspot" points="1375,2394 1321,2353 1393,2222 1411,2085 1604,2160 1643,2096 1692,2224 1687,2399"></polygon>
+          <title>Satan</title>
+        </a>
+        <image id="ov-satan" class="hover-visual" href="assets/overlays/satan_overlay.png" x="1278" y="2049" width="500" height="350" />
+      </g>
+
+      <!-- FMA (thought bubble) -->
+      <g class="hs hs--fma">
+        <a role="link" tabindex="0" href="#fma" data-bubble-target="fma" aria-label="FMA thought">
+          <polygon class="hotspot" points="508,1238 510,1241 503,1609 577,1650 577,1725 1501,1712 1514,1251"></polygon>
+          <title>FMA</title>
+        </a>
+        <image id="ov-fma" class="hover-visual" href="assets/overlays/fma_overlay.png" x="370" y="1192" width="1225" height="600" />
+      </g>
+
+      <!-- RIZA (thought bubble) -->
+      <g class="hs hs--riza">
+        <a role="link" tabindex="0" href="#riza" data-bubble-target="riza" aria-label="Riza thought">
+          <polygon class="hotspot" points="451,1686 454,1769 505,1789 533,1758 531,1653 474,1640 454,1673"></polygon>
+          <title>Riza</title>
+        </a>
+        <image id="ov-riza" class="hover-visual" href="assets/overlays/riza_overlay.png" x="414" y="1611" width="165" height="200" />
+      </g>
+
+      <!-- LEONA (thought bubble) -->
+      <g class="hs hs--leona">
+        <a role="link" tabindex="0" href="#leona" data-bubble-target="leona" aria-label="Leona thought">
+          <polygon class="hotspot" points="1900,850 1954,896 2070,852 2101,790 2052,718 1921,721 1895,839"></polygon>
+          <title>Leona</title>
+        </a>
+        <image id="ov-leona" class="hover-visual" href="assets/overlays/leona_overlay.png" x="1841" y="642" width="300" height="300" />
+      </g>
+
+      <!-- CUBCHOO (thought bubble) -->
+      <g class="hs hs--cubchoo">
+        <a role="link" tabindex="0" href="#cubchoo" data-bubble-target="cubchoo" aria-label="Cubchoo thought">
+          <polygon class="hotspot" points="528,553 606,517 698,541 760,525 781,618 734,651 719,736 755,793 757,834 636,837 554,847 546,752 557,690 513,618 518,559"></polygon>
+          <title>Cubchoo</title>
+        </a>
+        <image id="ov-cubchoo" class="hover-visual" href="assets/overlays/cubchoo_overlay.png" x="434" y="484" width="400" height="400" />
+      </g>
+
+      <!-- MEMORIES (leave for later) -->
+      <g class="hs hs--memories">
+        <a role="link" tabindex="0" href="#memories" aria-label="Memories overlay">
+          <polygon class="hotspot" points="513,2003 528,2397 739,2397 737,1892 652,1879"></polygon>
+          <title>Memories</title>
+        </a>
+        <image id="ov-memories" class="hover-visual" href="assets/overlays/memories_overlay.png" x="480" y="1835" width="330" height="560" />
+      </g>
+
+      <!-- TOP LEFT BOOKS (thought bubble) -->
+      <g class="hs hs--top-leftbooks">
+        <a role="link" tabindex="0" href="#top-leftbooks" data-bubble-target="top-leftbooks" aria-label="Top left books thought">
+          <polygon class="hotspot" points="1344,257 1373,834 1684,860 1707,224 1337,255"></polygon>
+          <title>Top Left Books</title>
+        </a>
+        <image id="ov-top-leftbooks" class="hover-visual" href="assets/overlays/top_leftbooks_overlay.png" x="1277" y="181" width="500" height="760" />
+      </g>
+
+      <!-- TOP BOOKS (thought bubble) -->
+      <g class="hs hs--top-books">
+        <a role="link" tabindex="0" href="#top-books" data-bubble-target="top-books" aria-label="Top books thought">
+          <polygon class="hotspot" points="2433,772 2595,193 2951,209 3116,319 2940,860 2472,865 2438,780"></polygon>
+          <title>Top Books</title>
+        </a>
+        <image id="ov-top-books" class="hover-visual" href="assets/overlays/top_books_overlay.png" x="2392" y="153" width="750" height="750" />
+      </g>
+
+      <!-- BOTTOM BOOKS (thought bubble) -->
+      <g class="hs hs--bottom-books">
+        <a role="link" tabindex="0" href="#bottom-books" data-bubble-target="bottom-books" aria-label="Bottom books thought">
+          <polygon class="hotspot" points="2034,2381 2078,1861 2539,1851 2598,2062 2572,2397 2032,2392"></polygon>
+          <title>Bottom Books</title>
+        </a>
+        <image id="ov-bottom-books" class="hover-visual" href="assets/overlays/bottom_books_overlay.png" x="2004" y="1808" width="600" height="600" />
+      </g>
+
+      <!-- GHOUL BINDER (leave for later) -->
+      <g class="hs hs--ghoul-binder">
+      <a role="link" tabindex="0"
+   href="#"
+   data-binder="ghouls"
+   aria-label="Open Ghoul Binder">
+          <polygon class="hotspot" points="2382,924 2387,1673 2444,1787 2637,1774 2660,989 2606,911"></polygon>
+          <title>Ghoul Binder</title>
+        </a>
+        <image id="ov-ghoul-binder" class="hover-visual" href="assets/overlays/ghoul_binder_overlay.png" x="2278" y="760" width="500" height="1200" />
+      </g>
+
+      <!-- YARA BINDER (leave for later) -->
+      <g class="hs hs--yara-binder">
+        <a role="link" tabindex="0"
+   href="#"
+   data-binder="self"
+   aria-label="Open Yara Binder">
+          <polygon class="hotspot" points="2670,1099 2714,934 2786,922 2951,1130 2781,1776 2686,1776 2644,1727"></polygon>
+          <title>Yara Binder</title>
+        </a>
+        <image id="ov-yara-binder" class="hover-visual" href="assets/overlays/yara_binder_overlay.png" x="2531" y="760" width="500" height="1200" />
+      </g>
+
+      <!-- AII BINDER (leave for later) -->
+      <g class="hs hs--aii-binder">
+       <a role="link" tabindex="0"
+   href="#"
+   data-binder="aii"
+   aria-label="Open AII Binder">
+          <polygon class="hotspot" points="2858,1017 2876,919 3013,909 3167,991 2976,1787 2822,1794 2807,1725 2964,1120"></polygon>
+          <title>AII Binder</title>
+        </a>
+        <image id="ov-aii-binder" class="hover-visual" href="assets/overlays/aii_binder_overlay.png" x="2662" y="786" width="600" height="1200" />
+      </g>
+
+    </svg>
+
+    <footer class="dev-only">
+      Everything scales inside one SVG (3600×2400). Toggle <strong>Debug</strong> to see hitboxes; <strong>Position Overlays</strong> to fine-tune.
+    </footer>
+  </div>
+
+  <!-- Dev mode guard (same behavior as Room) -->
+  <script>
+  (function () {
+    const body = document.body;
+    const qs = new URLSearchParams(location.search);
+    const DEV_TOKEN = 'moonlit-tide';
+
+    const isLocalhost = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname);
+    const hasSecretQS = qs.get('dev') === DEV_TOKEN;
+    const priorSession = sessionStorage.getItem('dev') === '1';
+    const wantDev = isLocalhost || hasSecretQS || priorSession;
+
+    function wireDevControls() {
+      const dbgBtn = document.getElementById('toggleDebug');
+      const posBtn = document.getElementById('posMode');
+
+      if (dbgBtn && !dbgBtn._wired) {
+        dbgBtn.addEventListener('click', () => body.classList.toggle('debug'));
+        dbgBtn._wired = true;
+      }
+      if (posBtn && !posBtn._wired) posBtn._wired = true;
+    }
+
+    function setDev(on) {
+      body.classList.toggle('dev', on);
+      if (!on) body.classList.remove('debug', 'pos-mode');
+      sessionStorage.setItem('dev', on ? '1' : '0');
+      if (on) wireDevControls();
+      document.dispatchEvent(new CustomEvent('devmode:changed', { detail: { on } }));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => setDev(!!wantDev));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.shiftKey && e.altKey && e.code === 'KeyD') {
+        e.preventDefault();
+        setDev(!body.classList.contains('dev'));
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!body.classList.contains('dev')) return;
+      const isToggle = (e.ctrlKey || e.metaKey) && e.key === '`';
+      if (!isToggle) return;
+      e.preventDefault();
+      setDev(!body.classList.contains('dev'));
+    });
+  })();
+  </script>
+
+  <!-- THOUGHT BUBBLES (ported from Room, adapted for bookshelf keys) -->
+  <script>
+  (function () {
+    const pop   = document.getElementById('thoughtPop');
+    const imgEl = document.getElementById('thoughtImg');
+    const txtEl = document.getElementById('thoughtText');
+    const close = document.getElementById('thoughtClose');
+    const svg   = document.querySelector('svg.stage');
+    if (!pop || !imgEl || !txtEl || !close || !svg) return;
+
+    const UI = "../assets/ui/";
+
+    // One-entry arrays so the system is identical (and you can add more later if you want).
+    const entriesByKey = new Map([
+      ['cubchoo', [{
+        text: "Me too, Cubchoo, me too. It's so cold in Frostheim, all the time. I'm not used to it. I miss the San Francisco weather.",
+        img: UI + "Yara_Ghast.png",
+        alt: "Yara, ghast"
+      }]],
+      ['top-leftbooks', [{
+        text: "These books are from Aether West. One is a field guide on herbs and plants, both anomalous and non-anomalous, and the other is my favorite basic guide to potions. You can never go wrong having the basics on hand.",
+        img: UI + "Yara_Love.png",
+        alt: "Yara, fond"
+      }]],
+      ['leona', [{
+        text: "Leona Kingscholar is my favorite Twisted Character! I sure do love a sleepy, grumpy type... Wait, a minute...",
+        img: UI + "Yara_Ghast.png",
+        alt: "Yara, caught"
+      }]],
+      ['top-books', [{
+        text: "These three books are the standard textbooks on the classes they assigned me to take this coming year... Anomalous Information Studies, Demonology and the Occult, and Advanced Subjugation Techniques. These classes feel like punishment from how I left Aether... Sigh. I guess it makes sense.",
+        img: UI + "Yara_Speechless.png",
+        alt: "Yara, speechless"
+      }]],
+      ['fma', [{
+        text: "Maybe the only reason why I got funneled to Aether West as opposed to all the other divisions was because my obsession with Alchemy. A great deal of our studies was transmutation, and while transmuting is not my strongest skill when it comes to Alchemy, it sure is fun... Now, in theory... if only I could be as good as an Alchemist as Ed...",
+        img: UI + "Yara_Flowers.png",
+        alt: "Yara, dreamy"
+      }]],
+      ['riza', [{
+        text: "If I had to be a badass woman, I'd be Riza Hawkeye...",
+        img: UI + "Yara_Hehe.png",
+        alt: "Yara, amused"
+      }]],
+      ['satan', [{
+        text: "You want to talk about a real man? Well... I guess he's not a man. And I guess he's not real, either... But, goodness,..",
+        img: UI + "Yara_Blushing_Happy.png",
+        alt: "Yara, blushing"
+      }]],
+      ['bottom-books', [{
+        text: "These are books for the second semester. Anomalous Medicine, Anomalous Genetic and Science, and Anomalous Crime, Law, and Ethics. I guess taking specialty topics before fourth year internship will help me decide what I want to go into, yeah? If I even pass that 'Trial' next year...",
+        img: UI + "Yara_Confused.png",
+        alt: "Yara, confused"
+      }]],
+    ]);
+
+    function pickEntry(entries){
+      const pick = entries[Math.floor(Math.random() * entries.length)];
+      return {
+        text: pick.text || "…",
+        img:  pick.img  || imgEl.getAttribute('src'),
+        alt:  pick.alt  || "Portrait"
+      };
+    }
+
+    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+    function getScreenRectForSvgElement(el){
+      const bbox = el.getBBox();
+      const ctm  = el.getScreenCTM();
+      if (!ctm) return null;
+
+      const pt = svg.createSVGPoint();
+      const corners = [
+        {x: bbox.x, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y + bbox.height},
+        {x: bbox.x, y: bbox.y + bbox.height}
+      ].map(p => {
+        pt.x = p.x; pt.y = p.y;
+        const sp = pt.matrixTransform(ctm);
+        return {x: sp.x, y: sp.y};
+      });
+
+      const xs = corners.map(c => c.x);
+      const ys = corners.map(c => c.y);
+      const left = Math.min(...xs), right = Math.max(...xs);
+      const top  = Math.min(...ys), bottom= Math.max(...ys);
+      return { left, top, right, bottom, width: right-left, height: bottom-top };
+    }
+
+    function openBubble({entries, anchorEl}){
+      const {text, img, alt} = pickEntry(entries);
+      txtEl.innerHTML = `<em>“${text}”</em>`;
+      imgEl.src = img;
+      imgEl.alt = alt;
+
+      const poly = anchorEl.querySelector('.hotspot');
+      const rect = poly ? getScreenRectForSvgElement(poly) : anchorEl.getBoundingClientRect();
+      if (!rect) return;
+
+      pop.classList.add('open');
+
+      const bubble = pop.querySelector('.bubble');
+      const bw = bubble.offsetWidth;
+      const bh = bubble.offsetHeight;
+
+      const cx = rect.left + rect.width/2;
+      const topY = rect.top;
+
+      const x = clamp(cx, 12 + bw/2, window.innerWidth - 12 - bw/2);
+      const y = clamp(topY - 12, bh + 12, window.innerHeight - 12);
+
+      pop.style.left = `${x}px`;
+      pop.style.top  = `${y}px`;
+
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+      anchorEl.closest('.hs')?.classList.add('active');
+    }
+
+    function closeBubble(){
+      pop.classList.remove('open');
+      pop.style.left = '';
+      pop.style.top  = '';
+      document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
+    }
+
+    close.addEventListener('click', closeBubble);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pop.classList.contains('open')) closeBubble();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!pop.classList.contains('open')) return;
+      if (e.target.closest('#thoughtPop')) return;
+      closeBubble();
+    });
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-bubble-target]');
+      if (!a) return;
+
+      const key = a.getAttribute('data-bubble-target');
+      const entries = entriesByKey.get(key);
+      if (!entries) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openBubble({ entries, anchorEl: a });
+      a.blur?.();
+    });
+
+    // Keyboard: Enter/Space open (match click behavior)
+    document.addEventListener('keydown', (e) => {
+      const a = e.target?.closest?.('[data-bubble-target]');
+      if (!a) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+
+      const key = a.getAttribute('data-bubble-target');
+      const entries = entriesByKey.get(key);
+      if (!entries) return;
+
+      e.preventDefault();
+      openBubble({ entries, anchorEl: a });
+      a.blur?.();
+    }, true);
+
+    window.addEventListener('resize', () => {
+      if (pop.classList.contains('open')) closeBubble();
+    }, { passive:true });
+
+    // Preload portraits so there's no "blink"
+    Array.from(entriesByKey.values()).flat().forEach(p=>{
+      const i = new Image();
+      i.src = p.img;
+    });
+  })();
+  </script>
+
+  <!-- Overlay Positioning Mode (drag overlays + arrow nudge) -->
+  <script>
+  (function () {
+    const svg = document.querySelector('svg.stage');
+    const btn = document.getElementById('posMode');
+    if (!svg || !btn) return;
+
+    const hud = document.createElement('div');
+    hud.className = 'pos-hud';
+    hud.style.display = 'none';
+    hud.innerHTML = `
+      <div><strong>Overlay:</strong> <span id="ovName">—</span></div>
+      <div><strong>x</strong>=<code id="ovX">0</code> <strong>y</strong>=<code id="ovY">0</code>
+          <strong>w</strong>=<code id="ovW">0</code> <strong>h</strong>=<code id="ovH">0</code>
+          <button id="ovCopy" class="btn" type="button">Copy &lt;image&gt;</button>
+      </div>
+      <div style="opacity:.75;margin-top:6px">Arrows = 1px • Shift+Arrows = 10px • Click another overlay to switch</div>
+    `;
+    document.body.appendChild(hud);
+
+    const ovName = hud.querySelector('#ovName');
+    const ovX = hud.querySelector('#ovX');
+    const ovY = hud.querySelector('#ovY');
+    const ovW = hud.querySelector('#ovW');
+    const ovH = hud.querySelector('#ovH');
+
+    let posMode = false, sel = null, dragging = false, start = null, startXY = null;
+    const overlays = Array.from(document.querySelectorAll('image.hover-visual'));
+
+    function setHUD(el){
+      if (!el) return;
+      ovName.textContent = el.id || '(no id)';
+      ovX.textContent = el.getAttribute('x');
+      ovY.textContent = el.getAttribute('y');
+      ovW.textContent = el.getAttribute('width');
+      ovH.textContent = el.getAttribute('height');
+    }
+    function select(el){
+      if (!el) return;
+      sel = el;
+      overlays.forEach(o => o.style.outlineColor = (o === sel ? '#ffd54a' : '#7ad'));
+      setHUD(sel);
+    }
+    function shiftPolygonPoints(poly, dx, dy){
+      if (!poly || poly.tagName.toLowerCase() !== 'polygon') return;
+      const pts = poly.getAttribute('points').trim().split(/\s+/).map(p=>{
+        const [x,y] = p.split(',').map(Number);
+        return (x+dx)+','+(y+dy);
+      });
+      poly.setAttribute('points', pts.join(' '));
+    }
+    function nudge(dx, dy){
+      if (!sel) return;
+      const x = parseFloat(sel.getAttribute('x')) + dx;
+      const y = parseFloat(sel.getAttribute('y')) + dy;
+      sel.setAttribute('x', x);
+      sel.setAttribute('y', y);
+
+      const g = sel.closest('g.hs');
+      const poly = g ? g.querySelector('polygon.hotspot') : null;
+      if (poly) shiftPolygonPoints(poly, dx, dy);
+
+      setHUD(sel);
+    }
+
+    function onDown(e){
+      if (!posMode || !document.body.classList.contains('dev')) return;
+      const target = e.target.closest('image.hover-visual');
+      if (!target) return;
+      dragging = true;
+      select(target);
+      start = { clientX: e.clientX, clientY: e.clientY };
+      startXY = { x: parseFloat(sel.getAttribute('x')), y: parseFloat(sel.getAttribute('y')) };
+      e.preventDefault();
+    }
+    function onMove(e){
+      if (!dragging || !sel) return;
+      const dx = e.clientX - start.clientX;
+      const dy = e.clientY - start.clientY;
+      const nx = Math.round(startXY.x + dx);
+      const ny = Math.round(startXY.y + dy);
+      sel.setAttribute('x', nx);
+      sel.setAttribute('y', ny);
+
+      const g = sel.closest('g.hs');
+      const poly = g ? g.querySelector('polygon.hotspot') : null;
+      if (poly) {
+        shiftPolygonPoints(poly, dx, dy);
+        start = { clientX: e.clientX, clientY: e.clientY };
+        startXY = { x: nx, y: ny };
+      }
+
+      setHUD(sel);
+    }
+    function onUp(){ dragging = false; }
+
+    function enablePosModeUI(on){
+      document.body.classList.toggle('pos-mode', on);
+      hud.style.display = on ? 'block' : 'none';
+      if (on) {
+        select(sel || overlays[0]);
+        svg.addEventListener('mousedown', onDown);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      } else {
+        svg.removeEventListener('mousedown', onDown);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+        overlays.forEach(o => o.style.outlineColor = '#7ad');
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (!document.body.classList.contains('dev')) return;
+      posMode = !posMode;
+      enablePosModeUI(posMode);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!document.body.classList.contains('dev') || !posMode) return;
+      const step = e.shiftKey ? 10 : 1;
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        if (e.key==='ArrowLeft')  nudge(-step,0);
+        if (e.key==='ArrowRight') nudge( step,0);
+        if (e.key==='ArrowUp')    nudge(0,-step);
+        if (e.key==='ArrowDown')  nudge(0, step);
+      }
+    });
+
+    hud.addEventListener('click', (e)=>{
+      if (e.target.id !== 'ovCopy' || !sel) return;
+      navigator.clipboard.writeText(sel.outerHTML).then(()=>{
+        e.target.textContent = 'Copied!';
+        setTimeout(()=> e.target.textContent = 'Copy <image>', 900);
+      });
+    });
+
+    document.addEventListener('click', (e)=>{
+      if (!posMode || !document.body.classList.contains('dev')) return;
+      const img = e.target.closest('image.hover-visual');
+      if (img) { select(img); e.preventDefault(); }
+    });
+
+    document.addEventListener('devmode:changed', (e) => {
+      if (!e.detail?.on && posMode) { posMode = false; enablePosModeUI(false); }
+    });
+  })();
+  </script>
+
+  <!-- Preload overlays -->
+  <script>
+  (function(){
+    const preload = [
+      'assets/overlays/satan_overlay.png',
+      'assets/overlays/fma_overlay.png',
+      'assets/overlays/riza_overlay.png',
+      'assets/overlays/leona_overlay.png',
+      'assets/overlays/cubchoo_overlay.png',
+      'assets/overlays/memories_overlay.png',
+      'assets/overlays/top_leftbooks_overlay.png',
+      'assets/overlays/top_books_overlay.png',
+      'assets/overlays/bottom_books_overlay.png',
+      'assets/overlays/aii_binder_overlay.png',
+      'assets/overlays/yara_binder_overlay.png',
+      'assets/overlays/ghoul_binder_overlay.png',
+      '../assets/ui/yara-portrait.png'
+    ];
+    preload.forEach(src => { const i = new Image(); i.src = src; });
+  })();
+  </script>
+
+<!-- ===============================
+     Binder Modal (iframe)
+     =============================== -->
+<div id="binderModal" class="binderModal" aria-hidden="true" role="dialog" aria-label="Binder">
+  <div class="binderModal__panel" role="document">
+    <div class="binderModal__bar">
+      <div id="binderModalTitle" class="binderModal__title">Binder</div>
+      <button id="binderModalClose" class="binderModal__close" type="button">Close</button>
+    </div>
+
+    <iframe id="binderFrame" class="binderModal__frame" title="Binder" loading="eager"></iframe>
+  </div>
+</div>
+
+<script>
+(function(){
+  const modal = document.getElementById('binderModal');
+  const frame = document.getElementById('binderFrame');
+  const closeBtn = document.getElementById('binderModalClose');
+  const titleEl = document.getElementById('binderModalTitle');
+
+  if (!modal || !frame || !closeBtn) return;
+
+  // ✅ set this to your binder engine file path RELATIVE to this bookshelf page
+  // If binder engine is in same folder: "binder.html"
+  // If it’s in /lore/binder.html, etc: "./binder/binder.html"
+  const BINDER_ENGINE = "binder.html";
+
+  const LABEL = {
+    ghouls: "Ghoul Binder",
+    self:   "Yara’s Lore Binder",
+    aii:    "AII Research Binder"
+  };
+
+  function openBinder(bookKey){
+    const key = String(bookKey || 'aii').toLowerCase();
+    const url = `${BINDER_ENGINE}?book=${encodeURIComponent(key)}`;
+
+    titleEl.textContent = LABEL[key] || "Binder";
+    frame.src = url;
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+  }
+
+  function closeBinder(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+
+    // optional: unload so audio/etc. stops
+    frame.src = "about:blank";
+  }
+
+  closeBtn.addEventListener('click', closeBinder);
+
+  // click outside panel closes
+  modal.addEventListener('click', (e)=>{
+    if (e.target === modal) closeBinder();
+  });
+
+  // Esc closes
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeBinder();
+  });
+
+  // Intercept clicks on the 3 binder hotspots
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest('a[data-binder]');
+    if (!a) return;
+    e.preventDefault();
+    openBinder(a.getAttribute('data-binder'));
+  });
+
+  // Keyboard Enter/Space on those links
+  document.addEventListener('keydown', (e)=>{
+    const a = e.target?.closest?.('a[data-binder]');
+    if (!a) return;
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    openBinder(a.getAttribute('data-binder'));
+  }, true);
+})();
+</script>
+
+
+</body>
+</html>

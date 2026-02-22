@@ -1,0 +1,2 @@
+- [Yuri Isami — Profile](#mortkranken:yuri) · [Gallery](#mortkranken:yuri-gallery)
+- [Jiro Kirisaki — Profile](#mortkranken:jiro) · [Gallery](#mortkranken:jiro-gallery)

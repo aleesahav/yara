@@ -193,8 +193,8 @@
   }
 
   .frame-shell--wide{
-  height: min(72vh, calc(100vh - 220px));
-}
+    height: min(72vh, calc(100vh - 220px));
+  }
   .frame-shell--phone{
     height: min(84vh, calc(100vh - 120px));
     justify-content:center;
@@ -234,97 +234,97 @@
     border-left: 1px solid var(--panel-bd);
     border-top: 1px solid var(--panel-bd);
   }
-/* --- BARE bubble: no panel/backdrop, just the content --- */
-.bubbleModal.bubbleModal--bare{
-  background: transparent;
-  border: 0;
-  padding: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
 
-/* Optional: keep a tiny drop shadow on the content itself */
-.bubbleModal--bare .bubbleMedia img,
-.bubbleModal--bare .bubbleMedia iframe{
-  box-shadow: 0 18px 55px rgba(0,0,0,.55);
-}
+  /* --- BARE bubble: no panel/backdrop, just the content --- */
+  .bubbleModal.bubbleModal--bare{
+    background: transparent;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 
-/* Phone bubble wrapper */
-#phoneBubble{
-  width: min(420px, 92vw);
-}
+  .bubbleModal--bare .bubbleMedia img,
+  .bubbleModal--bare .bubbleMedia iframe{
+    box-shadow: 0 18px 55px rgba(0,0,0,.55);
+  }
 
-/* No forced aspect ratio wrapper */
-#phoneBubble .bubbleMedia{
-  display:grid;
-  place-items:center;
-  padding:0;
-}
+  /* Phone bubble wrapper */
+  #phoneBubble{
+    width: min(420px, 92vw);
+  }
 
-/* The iframe gets the aspect ratio (so it has height) */
-#phoneBubble .bubbleMedia iframe{
-  width: min(380px, 92vw);
-  aspect-ratio: 9 / 19.5;   /* controls height */
-  height: auto;             /* works because aspect-ratio defines it */
-  border:0;
-  border-radius:28px;
-  display:block;
-  background: transparent;
-  overflow:hidden;
-  box-shadow: 0 18px 55px rgba(0,0,0,.55); /* optional */
-}
+  /* No forced aspect ratio wrapper */
+  #phoneBubble .bubbleMedia{
+    display:grid;
+    place-items:center;
+    padding:0;
+  }
+
+  /* The iframe gets the aspect ratio (so it has height) */
+  #phoneBubble .bubbleMedia iframe{
+    width: min(380px, 92vw);
+    aspect-ratio: 9 / 19.5;
+    height: auto;
+    border:0;
+    border-radius:28px;
+    display:block;
+    background: transparent;
+    overflow:hidden;
+    box-shadow: 0 18px 55px rgba(0,0,0,.55);
+  }
+
   /* Bubble-style anchored modal */
-.bubbleModal{
-  position: fixed;
-  z-index: 9999;
-  width: min(520px, 92vw);
-  border-radius: 16px;
-  border: 1px solid rgba(143,74,255,.55);
-  background: rgba(14,16,24,.72);
-  box-shadow: 0 22px 70px rgba(0,0,0,.65);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  padding: 12px;
-}
+  .bubbleModal{
+    position: fixed;
+    z-index: 9999;
+    width: min(520px, 92vw);
+    border-radius: 16px;
+    border: 1px solid rgba(143,74,255,.55);
+    background: rgba(14,16,24,.72);
+    box-shadow: 0 22px 70px rgba(0,0,0,.65);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    padding: 12px;
+  }
 
-.bubbleModal::after{
-  content:"";
-  position:absolute;
-  left: var(--arrow-x, 50%);
-  top: 100%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border: 12px solid transparent;
-  border-top-color: rgba(14,16,24,.72); /* bubble fill */
-  filter: drop-shadow(0 8px 10px rgba(0,0,0,.45));
-}
+  .bubbleModal::after{
+    content:"";
+    position:absolute;
+    left: var(--arrow-x, 50%);
+    top: 100%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border: 12px solid transparent;
+    border-top-color: rgba(14,16,24,.72);
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,.45));
+  }
 
-.bubbleModal::before{
-  content:"";
-  position:absolute;
-  left: var(--arrow-x, 50%);
-  top: 100%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border: 13px solid transparent;
-  border-top-color: rgba(143,74,255,.55); /* arrow border */
-}
+  .bubbleModal::before{
+    content:"";
+    position:absolute;
+    left: var(--arrow-x, 50%);
+    top: 100%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border: 13px solid transparent;
+    border-top-color: rgba(143,74,255,.55);
+  }
 
-/* ID image styling */
-.bubbleModal .bubbleMedia{
-  display:grid;
-  place-items:center;
-}
+  .bubbleModal .bubbleMedia{
+    display:grid;
+    place-items:center;
+  }
 
-.bubbleModal .bubbleMedia img{
-  width: 100%;
-  height: auto;
-  max-height: min(70vh, 460px);
-  object-fit: contain;
-  border-radius: 12px;
-  border: 1px solid rgba(42,49,71,.85);
-}
+  .bubbleModal .bubbleMedia img{
+    width: 100%;
+    height: auto;
+    max-height: min(70vh, 460px);
+    object-fit: contain;
+    border-radius: 12px;
+    border: 1px solid rgba(42,49,71,.85);
+  }
 
   @media (max-width: 740px){
     .modal__panel::after{ display:none; }
@@ -559,31 +559,23 @@
         <image id="ov-armoire" class="hover-visual" href="assets/overlays/armoire-ajar.png" x="3136" y="1215" width="464" height="960" />
       </g>
 
-      <!-- Research: Ghouls -->
-      <g class="hs hs--research-ghouls">
-        <a role="link" tabindex="0" href="#researchGhoulsModal" data-modal-target="researchGhoulsModal" aria-label="Yara’s Research — Ghouls">
-          <polygon class="hotspot" points="37,1752 2,1621 44,1615 117,1774 85,1783"></polygon>
-          <title>Lore — Ghouls</title>
+      <!-- NEW: Lore Bookshelf (links to a new page) -->
+      <g class="hs hs--lore-bookshelf">
+        <a role="link" tabindex="0" href="lore/index.html" aria-label="Yara’s Lore — open the bookshelf">
+          <!-- Hitbox tuned for the left bookshelf area; adjust in Debug if needed -->
+         <polygon class="hotspot"
+  points="1,2265 351,2096 158,1357 188,1336 52,1174 6,1205 8,2255">
+</polygon>
+          <title>Yara’s Lore — Bookshelf</title>
         </a>
-        <image id="ov-ghouls" class="hover-visual" href="assets/overlays/ghoulbinder-bright.png" x="0" y="1610" width="126" height="191" />
-      </g>
-
-      <!-- Research: Self -->
-      <g class="hs hs--research-self">
-        <a role="link" tabindex="0" href="#researchSelfModal" data-modal-target="researchSelfModal" aria-label="Yara’s Research — Self (Lore)">
-          <polygon class="hotspot" points="72,1647 85,1608 139,1685 139,1780 114,1764"></polygon>
-          <title>Lore — Self</title>
-        </a>
-        <image id="ov-self" class="hover-visual" href="assets/overlays/yarabinder-bright.png" x="54" y="1603" width="108" height="182" />
-      </g>
-
-      <!-- Research: AII -->
-      <g class="hs hs--research-aii">
-        <a role="link" tabindex="0" href="#researchAIIModal" data-modal-target="researchAIIModal" aria-label="Yara’s Research — AII">
-          <polygon class="hotspot" points="158,1755 180,1752 161,1612 126,1577 95,1593 145,1663"></polygon>
-          <title>Lore — AII</title>
-        </a>
-        <image id="ov-aii" class="hover-visual" href="assets/overlays/aiibinder-bright.png" x="95" y="1570" width="100" height="201" />
+        <!-- Overlay (your new asset) -->
+    <image id="ov-lore-bookshelf"
+       class="hover-visual"
+       href="assets/overlays/lorebookshelf-bright.png"
+       x="0"
+       y="1087"
+       width="434"
+       height="1250" />
       </g>
 
       <!-- Window (thought bubble) -->
@@ -638,11 +630,7 @@
   </div>
 
   <!-- =========================================
-       MODALS (div-based)
-       Click outside closes.
-       Esc closes.
-       Iframes fit properly.
-       No phantom dialog backdrops.
+       MODALS
        ========================================= -->
 
   <div id="journalModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s Journal">
@@ -668,45 +656,6 @@
         <div class="frame-shell frame-shell--phone">
           <iframe src="phone.html" title="Phone" loading="lazy" scrolling="no"
             allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="researchGhoulsModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — Ghouls">
-    <div class="modal__panel" data-tail="bottom">
-      <div class="modal__bar">
-        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
-      </div>
-      <div class="modal__body">
-        <div class="frame-shell frame-shell--wide">
-          <iframe class="js-autofit" src="binder.html?book=ghouls" title="Ghoul Binder" loading="lazy"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="researchSelfModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — Self">
-    <div class="modal__panel" data-tail="bottom">
-      <div class="modal__bar">
-        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
-      </div>
-      <div class="modal__body">
-        <div class="frame-shell frame-shell--wide">
-          <iframe class="js-autofit" src="binder.html?book=self" title="Self Research Binder" loading="lazy"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="researchAIIModal" class="modal" role="dialog" aria-modal="true" aria-label="Research — AII">
-    <div class="modal__panel" data-tail="bottom">
-      <div class="modal__bar">
-        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
-      </div>
-      <div class="modal__body">
-        <div class="frame-shell frame-shell--wide">
-          <iframe class="js-autofit" src="binder.html?book=aii" title="AII Binder" loading="lazy"></iframe>
         </div>
       </div>
     </div>
@@ -772,30 +721,6 @@
       <div class="modal__body">
         <div class="frame-shell frame-shell--wide">
           <iframe class="js-autofit" src="desknotes.html" title="Desk Notes" loading="lazy"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="idcardModal" class="modal" role="dialog" aria-modal="true" aria-label="Yara’s ID Card">
-    <div class="modal__panel" data-tail="bottom">
-      <div class="modal__bar">
-        <button class="modal__close" type="button" data-modal-close aria-label="Close">✕</button>
-      </div>
-      <div class="modal__body">
-        <div class="frame-shell frame-shell--wide" style="align-items:center; justify-content:center;">
-          <div style="width:100%; height:100%; display:grid; place-items:center; padding:12px; box-sizing:border-box;">
-            <img src="assets/notes/yara-id.png" alt="Yara’s ID card"
-              style="
-                max-width: min(760px, 100%);
-                max-height: 100%;
-                height:auto; width:auto;
-                display:block;
-                border-radius:12px;
-                border:1px solid rgba(42,49,71,.85);
-                box-shadow:0 10px 30px rgba(0,0,0,.45);
-              ">
-          </div>
         </div>
       </div>
     </div>
@@ -888,9 +813,6 @@
     { text: "I still dream of a blue ocean and a silver sky, just like when I was a kid...", img: "assets/ui/Yara_Confused.png", alt: "Yara dreaming" }
   ];
 
-  /* =========================================
-     THOUGHT BUBBLE ANCHORING (Mirror/Window/Bed)
-     ========================================= */
   (function () {
     const pop   = document.getElementById('thoughtPop');
     const imgEl = document.getElementById('thoughtImg');
@@ -1044,52 +966,6 @@
   })();
   </script>
 
-<script>
-/* Fix relative image paths inside binder iframe (so ghouls portraits load everywhere) */
-(function(){
-  function patchBinderFrame(frame){
-    try{
-      const doc = frame.contentDocument;
-      if (!doc) return;
-
-      // If binder.html is in the SAME folder as this room file,
-      // then images should be relative to that folder.
-      // This decides whether we need to prefix "yaras-room-starter/".
-      const needPrefix = location.pathname.includes('/yara/') && !location.pathname.includes('/yaras-room-starter/');
-      const prefix = needPrefix ? 'yaras-room-starter/' : '';
-
-      doc.querySelectorAll('img').forEach(img=>{
-        const src = img.getAttribute('src') || '';
-        if (!src) return;
-        if (/^(https?:|data:|blob:)/i.test(src)) return;
-
-        // normalize "/assets/..." -> "assets/..."
-        const clean = src.startsWith('/') ? src.slice(1) : src;
-
-        // only touch assets paths
-        if (clean.startsWith('assets/')) img.setAttribute('src', prefix + clean);
-      });
-    } catch (err) {
-      // cross-origin or not ready; ignore
-    }
-  }
-
-  function wire(){
-    // Only target your binder iframes (the ones you use for ghouls/self/aii)
-    const frames = document.querySelectorAll('iframe[src^="binder.html"]');
-    frames.forEach(frame=>{
-      if (frame._patchedPaths) return;
-      frame._patchedPaths = true;
-
-      frame.addEventListener('load', ()=> patchBinderFrame(frame));
-    });
-  }
-
-  window.addEventListener('load', wire);
-})();
-</script>
-
-
   <script>
   // ===== Anchored Modal open/close (DIV modals) =====
   (function(){
@@ -1122,7 +998,6 @@
     }
 
     function measurePanel(panel){
-      // Ensure measurable without flicker
       const prevVis = panel.style.visibility;
       const prevLeft = panel.style.left;
       const prevTop  = panel.style.top;
@@ -1133,7 +1008,6 @@
       panel.style.top  = '50%';
       panel.style.transform = 'translate(-50%, -50%)';
 
-      // force layout
       const w = panel.offsetWidth;
       const h = panel.offsetHeight;
 
@@ -1157,7 +1031,6 @@
 
       const cx = rect.left + rect.width/2;
 
-      // Prefer above, otherwise below
       const spaceAbove = rect.top;
       const spaceBelow = window.innerHeight - rect.bottom;
 
@@ -1166,24 +1039,20 @@
       let tail;
 
       if (spaceAbove >= ph + 18) {
-        // above
         y = rect.top - 12;
         panel.style.transform = 'translate(-50%, -100%)';
         tail = 'bottom';
       } else if (spaceBelow >= ph + 18) {
-        // below
         y = rect.bottom + 12;
         panel.style.transform = 'translate(-50%, 0)';
         tail = 'top';
       } else {
-        // fallback: center
         x = window.innerWidth/2;
         y = window.innerHeight/2;
         panel.style.transform = 'translate(-50%, -50%)';
         tail = 'bottom';
       }
 
-      // Tail offset inside bubble (relative to panel)
       const tailX = clamp(cx - (x - pw/2), 24, pw - 24);
       panel.style.setProperty('--tail-offset', `${tailX}px`);
       panel.setAttribute('data-tail', tail);
@@ -1193,7 +1062,6 @@
     }
 
     function openModal(modal, opener){
-      // close any other open modal first
       document.querySelectorAll('.modal.open').forEach(m => closeModal(m));
 
       modal.classList.add('open');
@@ -1205,7 +1073,6 @@
       modal._anchorOpener = opener || null;
       positionPanel(modal, opener);
 
-      // re-anchor after iframe loads (width/height changes)
       modal.querySelectorAll('iframe').forEach(fr=>{
         fr.addEventListener('load', ()=> {
           if (modal.classList.contains('open') && modal._anchorOpener) {
@@ -1214,7 +1081,6 @@
         }, { once:false });
       });
 
-      // focus close for keyboard sanity
       modal.querySelector('[data-modal-close]')?.focus?.();
     }
 
@@ -1225,7 +1091,6 @@
       document.querySelectorAll('.hs.active').forEach(el => el.classList.remove('active'));
     }
 
-    // Open by hotspot
     document.addEventListener('click', (e) => {
       const openBtn = e.target.closest('[data-modal-target]');
       if (!openBtn) return;
@@ -1239,7 +1104,6 @@
       openBtn.blur?.();
     });
 
-    // Close button
     document.addEventListener('click', (e) => {
       const closeBtn = e.target.closest('[data-modal-close]');
       if (!closeBtn) return;
@@ -1247,20 +1111,17 @@
       if (modal) closeModal(modal);
     });
 
-    // Click OUTSIDE (backdrop) closes
     document.addEventListener('click', (e) => {
       const modal = e.target.classList?.contains('modal') ? e.target : null;
       if (modal && modal.classList.contains('open')) closeModal(modal);
     });
 
-    // Esc closes topmost
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       const modal = document.querySelector('.modal.open');
       if (modal) closeModal(modal);
     });
 
-    // Reposition on resize
     window.addEventListener('resize', () => {
       const modal = document.querySelector('.modal.open');
       if (!modal || !modal._anchorOpener) return;
@@ -1269,11 +1130,19 @@
 
     // Preload overlays
     const preload = [
-      'assets/overlays/bag-open.png','assets/overlays/journal-pop.png','assets/overlays/phone-on.png',
-      'assets/overlays/secret-peek.png','assets/overlays/armoire-ajar.png','assets/overlays/aiibinder-bright.png',
-      'assets/overlays/ghoulbinder-bright.png','assets/overlays/yarabinder-bright.png','assets/overlays/playlist-bright.png',
-      'assets/overlays/mirror-bright.png','assets/overlays/window-bright.png','assets/overlays/bed-bright.png',
-      'assets/overlays/garbage-bright.png','assets/overlays/notes-bright.png','assets/overlays/idcard-bright.png',
+      'assets/overlays/bag-open.png',
+      'assets/overlays/journal-pop.png',
+      'assets/overlays/phone-on.png',
+      'assets/overlays/secret-peek.png',
+      'assets/overlays/armoire-ajar.png',
+      'assets/overlays/playlist-bright.png',
+      'assets/overlays/mirror-bright.png',
+      'assets/overlays/window-bright.png',
+      'assets/overlays/bed-bright.png',
+      'assets/overlays/garbage-bright.png',
+      'assets/overlays/notes-bright.png',
+      'assets/overlays/idcard-bright.png',
+      'assets/overlays/lorebookshelf-bright.png',
       'assets/ui/yara-portrait.png'
     ];
     preload.forEach(src => { const i = new Image(); i.src = src; });
@@ -1428,8 +1297,6 @@
   })();
   </script>
 
-
-
   <!-- Spotify mini player -->
   <div class="music-panel" id="musicPanel" role="dialog" aria-modal="false" aria-label="Spotify player">
     <header>
@@ -1476,116 +1343,111 @@
   })();
   </script>
 
-<!-- BARE anchored bubbles -->
-<div id="idBubble" class="bubbleModal bubbleModal--bare" style="display:none">
-  <div class="bubbleMedia">
-    <img src="assets/notes/yara-id.png" alt="Yara’s ID card">
+  <!-- BARE anchored bubbles -->
+  <div id="idBubble" class="bubbleModal bubbleModal--bare" style="display:none">
+    <div class="bubbleMedia">
+      <img src="assets/notes/yara-id.png" alt="Yara’s ID card">
+    </div>
   </div>
-</div>
 
-<div id="phoneBubble" class="bubbleModal bubbleModal--bare" style="display:none">
-  <div class="bubbleMedia">
-    <iframe src="phone.html" title="Phone" loading="lazy" scrolling="no"
-      allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
+  <div id="phoneBubble" class="bubbleModal bubbleModal--bare" style="display:none">
+    <div class="bubbleMedia">
+      <iframe src="phone.html" title="Phone" loading="lazy" scrolling="no"
+        allow="clipboard-write; fullscreen; picture-in-picture"></iframe>
+    </div>
   </div>
-</div>
+
   <script>
-(function(){
-  const svg = document.querySelector('svg.stage');
-  const idBubble = document.getElementById('idBubble');
-  const phoneBubble = document.getElementById('phoneBubble');
+  (function(){
+    const svg = document.querySelector('svg.stage');
+    const idBubble = document.getElementById('idBubble');
+    const phoneBubble = document.getElementById('phoneBubble');
 
-  if (!svg || !idBubble || !phoneBubble) return;
+    if (!svg || !idBubble || !phoneBubble) return;
 
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 
-  function getScreenRectForSvgElement(el){
-    const bbox = el.getBBox();
-    const ctm  = el.getScreenCTM();
-    if (!ctm) return null;
+    function getScreenRectForSvgElement(el){
+      const bbox = el.getBBox();
+      const ctm  = el.getScreenCTM();
+      if (!ctm) return null;
 
-    const pt = svg.createSVGPoint();
-    const corners = [
-      {x: bbox.x, y: bbox.y},
-      {x: bbox.x + bbox.width, y: bbox.y},
-      {x: bbox.x + bbox.width, y: bbox.y + bbox.height},
-      {x: bbox.x, y: bbox.y + bbox.height}
-    ].map(p => {
-      pt.x = p.x; pt.y = p.y;
-      const sp = pt.matrixTransform(ctm);
-      return {x: sp.x, y: sp.y};
+      const pt = svg.createSVGPoint();
+      const corners = [
+        {x: bbox.x, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y},
+        {x: bbox.x + bbox.width, y: bbox.y + bbox.height},
+        {x: bbox.x, y: bbox.y + bbox.height}
+      ].map(p => {
+        pt.x = p.x; pt.y = p.y;
+        const sp = pt.matrixTransform(ctm);
+        return {x: sp.x, y: sp.y};
+      });
+
+      const xs = corners.map(c => c.x);
+      const ys = corners.map(c => c.y);
+      const left = Math.min(...xs), right = Math.max(...xs);
+      const top  = Math.min(...ys), bottom= Math.max(...ys);
+      return { left, top, right, bottom, width: right-left, height: bottom-top };
+    }
+
+    function hideBubbles(){
+      idBubble.style.display = 'none';
+      phoneBubble.style.display = 'none';
+    }
+
+    function openAnchoredBubble({ anchorA, bubbleEl, offsetY = 18 }){
+      bubbleEl.style.display = 'block';
+
+      const poly = anchorA.querySelector('.hotspot');
+      const rect = poly ? getScreenRectForSvgElement(poly) : anchorA.getBoundingClientRect();
+      if (!rect) return;
+
+      const b = bubbleEl.getBoundingClientRect();
+      const anchorX = rect.left + rect.width / 2;
+      const anchorY = rect.top;
+
+      let left = anchorX - b.width / 2;
+      let top  = anchorY - b.height - offsetY;
+
+      const pad = 12;
+      left = clamp(left, pad, window.innerWidth  - b.width  - pad);
+      top  = clamp(top,  pad, window.innerHeight - b.height - pad);
+
+      bubbleEl.style.left = `${left}px`;
+      bubbleEl.style.top  = `${top}px`;
+
+      bubbleEl.style.setProperty('--arrow-x', `${anchorX - left}px`);
+    }
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-bubble-media]');
+      if (!a) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const type = a.getAttribute('data-bubble-media');
+
+      hideBubbles();
+      if (type === 'id')    openAnchoredBubble({ anchorA: a, bubbleEl: idBubble, offsetY: 20 });
+      if (type === 'phone') openAnchoredBubble({ anchorA: a, bubbleEl: phoneBubble, offsetY: 20 });
+
+      a.blur?.();
     });
 
-    const xs = corners.map(c => c.x);
-    const ys = corners.map(c => c.y);
-    const left = Math.min(...xs), right = Math.max(...xs);
-    const top  = Math.min(...ys), bottom= Math.max(...ys);
-    return { left, top, right, bottom, width: right-left, height: bottom-top };
-  }
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#idBubble') || e.target.closest('#phoneBubble')) return;
+      hideBubbles();
+    });
 
-  function hideBubbles(){
-    idBubble.style.display = 'none';
-    phoneBubble.style.display = 'none';
-  }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideBubbles();
+    });
 
-  function openAnchoredBubble({ anchorA, bubbleEl, offsetY = 18 }){
-    // show to measure
-    bubbleEl.style.display = 'block';
-
-    const poly = anchorA.querySelector('.hotspot');
-    const rect = poly ? getScreenRectForSvgElement(poly) : anchorA.getBoundingClientRect();
-    if (!rect) return;
-
-    const b = bubbleEl.getBoundingClientRect();
-    const anchorX = rect.left + rect.width / 2;
-    const anchorY = rect.top;
-
-    let left = anchorX - b.width / 2;
-    let top  = anchorY - b.height - offsetY;
-
-    const pad = 12;
-    left = clamp(left, pad, window.innerWidth  - b.width  - pad);
-    top  = clamp(top,  pad, window.innerHeight - b.height - pad);
-
-    bubbleEl.style.left = `${left}px`;
-    bubbleEl.style.top  = `${top}px`;
-
-    // arrow variable (you can ignore since we’re "bare", but harmless)
-    bubbleEl.style.setProperty('--arrow-x', `${anchorX - left}px`);
-  }
-
-  // One handler for any media bubble hotspot
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest('[data-bubble-media]');
-    if (!a) return;
-
-    e.preventDefault();
-    e.stopImmediatePropagation();
-
-    const type = a.getAttribute('data-bubble-media');
-
-    hideBubbles();
-    if (type === 'id')    openAnchoredBubble({ anchorA: a, bubbleEl: idBubble, offsetY: 20 });
-    if (type === 'phone') openAnchoredBubble({ anchorA: a, bubbleEl: phoneBubble, offsetY: 20 });
-
-    a.blur?.();
-  });
-
-  // close on outside click
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('#idBubble') || e.target.closest('#phoneBubble')) return;
-    hideBubbles();
-  });
-
-  // esc closes
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideBubbles();
-  });
-
-  // resize closes (prevents drift)
-  window.addEventListener('resize', hideBubbles, { passive:true });
-})();
-</script>
+    window.addEventListener('resize', hideBubbles, { passive:true });
+  })();
+  </script>
 
 </body>
 </html>
