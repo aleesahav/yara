@@ -316,11 +316,11 @@ button.close#closeBinder{
 }
 
 /* Typography */
-.sheet h1{ margin:.2rem 0 6px; font-size:1.2rem; }
+.sheet h1{ margin:.2rem 0 6px; font-size:1.2rem; color:#c49a5a; }
 .sheet h2{
   margin:1rem 0 .4rem;
   font-size:1.05rem;
-  color:#f0f2fb;
+  color:#a688c8;
   position:relative;
   padding-left:10px;
 }
@@ -332,7 +332,7 @@ button.close#closeBinder{
   background: linear-gradient(var(--accent), #cbb3ff);
   border-radius:2px;
 }
-.sheet h3{ margin:.75rem 0 .35rem; font-size:1rem; color:#e8ebf7; }
+.sheet h3{ margin:.75rem 0 .35rem; font-size:1rem; color:#7aaa8c; }
 .sheet p{ margin:.55rem 0; color:#dde1ee; }
 .sheet ul{ margin:.5rem 0 0 1.1rem; color:#dde1ee; }
 .meta{ color:var(--muted); font-size:.9rem; }
@@ -438,7 +438,7 @@ button.close#closeBinder{
 }
 .gallery-grid .thumb{
   width:100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   display:block;
   opacity:.96;
@@ -579,10 +579,35 @@ button.close#closeBinder{
   font-weight: 700;
 }
 
-/* Fan-made bits inside canon should NOT be blue */
 .sheet blockquote .fan{
   color: var(--ink);
   font-weight: 700;
+}
+
+/* Sticky note thoughts — use > ?? in markdown */
+.sheet blockquote.sticky-note{
+  background: rgba(210, 170, 50, 0.05);
+  color: #b09a6a;
+  border: none;
+  border-left: 2px solid rgba(180, 135, 40, 0.28);
+  border-radius: 0 3px 3px 0;
+  padding: 5px 12px 5px 10px;
+  margin: .65rem 0 .65rem 6px;
+  font-family: ui-serif, Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: .9rem;
+  position: relative;
+}
+.sheet blockquote.sticky-note p{
+  color: inherit;
+  margin: .2rem 0;
+}
+.sheet blockquote.sticky-note a{
+  color: #9a7f45;
+  text-decoration-color: rgba(154,127,69,.45);
+}
+.sheet blockquote.sticky-note strong{
+  color: #c4a86e;
 }
 
 .sheet hr{
@@ -681,7 +706,7 @@ button.close#closeBinder{
 
 .sheet .ghoul-portrait{
   width:100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 14px;
   display:block;
@@ -693,12 +718,11 @@ button.close#closeBinder{
   text-align:center;
 }
 
-/* Prevent portrait grid images from triggering lightbox behavior */
 .sheet .ghoul-card img{
   pointer-events: none;
 }
 
-/* Make sure the link itself still works */
+
 .sheet .ghoul-card{
   cursor: pointer;
 }
@@ -818,10 +842,10 @@ aii: {
           src: "content/aii/artifacts/aeonarms.md"
         },
         {
-          id: "arbitersreign",
-          heading: "Arbiter’s Reign",
+          id: "threshold",
+          heading: "Threshold Knuckles",
           sub: "Combat • Brass Knuckles",
-          src: "content/aii/artifacts/arbitersreign.md"
+          src: "content/aii/artifacts/threshold.md"
         },
 /*        {
           id: "maidensgrief",
@@ -1036,27 +1060,45 @@ aii: {
       id:"jin",
       collect_updates_for:"jin",
       heading:"Jin Kamurai",
-      sub:"Stigma: Bianerus",
+      sub:"Overview",
       src:"content/ghouls/frostheim/jin/index.md"
     },
+  {
+  id:"jin-logs",
+  subject:"jin",
+  heading:"Jin Kamurai — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/frostheim/jin/logs.md"
+},
     {
-      id:"jin-archive-2024-07-30",
+      id:"jin-2024-07-30",
       subject:"jin",
       date:"2024-07-30",
-      status:"archive",
+      status:"Entry",
       heading:"Early Impressions",
       sub:"So-Called King",
       src:"content/ghouls/frostheim/jin/2024-07-30-early-impressions.md"
     },
     {
-      id:"jin-archive-2024-08-26",
+      id:"jin-2024-08-26",
       subject:"jin",
       date:"2024-08-26",
-      status:"archive",
-      heading:"Pain In My Ass",
-      sub:"So-Called King",
+      status:"Entry",
+      heading:"Meeting",
+      sub:"Showdown in the Onsen",
       src:"content/ghouls/frostheim/jin/2024-08-26-pain-in-my-ass.md"
     },
+
+      {
+      id:"jin-2024-09-09",
+      subject:"jin",
+      date:"2024-09-09",
+      status:"Entry",
+      heading:"Broken Stigma",
+      sub:"And the Honor Student's Help",
+      src:"content/ghouls/frostheim/jin/2024-09-09.md"
+    },
+
     {
       id:"jin-gallery",
       heading:"Jin Kamurai — Gallery",
@@ -1069,33 +1111,56 @@ aii: {
       id:"tohma",
       collect_updates_for:"tohma",
       heading:"Tohma Ishibashi",
-      sub:"Vice Captain • Not Above Bribes…",
+      sub:"Overview",
       src:"content/ghouls/frostheim/tohma/index.md"
     },
-    {
-      id:"tohma-archive-2024-07-30",
-      subject:"tohma",
-      date:"2024-07-30",
-      status:"archive",
-      heading:"Early Impressions",
-      sub:"Vice Captain of Frostheim — Dirty Hands, Dirtier Gloves",
-      src:"content/ghouls/frostheim/tohma/archive/2024-07-30-early-impressions.md"
-    },
-    {
-      id:"tohma-gallery",
-      heading:"Tohma Ishibashi — Gallery",
-      sub:"Fan Art Gallery",
-      src:"content/ghouls/frostheim/tohma/gallery.md"
-    },
+{
+  id:"tohma-logs",
+  subject:"tohma",
+  heading:"Tohma Ishibashi — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/frostheim/tohma/logs.md"
+},
+{
+  id:"tohma-archive-2024-07-30",
+  subject:"tohma",
+  date:"2024-07-30",
+  status:"archive",
+  heading:"Early Impressions",
+  sub:"Vice Captain of Frostheim — Dirty Hands, Dirtier Gloves",
+  src:"content/ghouls/frostheim/tohma/2024-07-30-early-impressions.md"
+},
+{
+  id:"tohma-2024-08-13",
+  subject:"tohma",
+  date:"2024-08-13",
+  status:"Entry",
+  heading:"Proposition",
+  sub:"Privacy for a Price",
+  src:"content/ghouls/frostheim/tohma/2024-08-13.md"
+},
+{
+  id:"tohma-gallery",
+  heading:"Tohma Ishibashi — Gallery",
+  sub:"Fan Art Gallery",
+  src:"content/ghouls/frostheim/tohma/gallery.md"
+},
 
     /* -------- LUCAS ERRANT ENTRIES -------- */
     {
       id:"lucas",
       collect_updates_for:"lucas",
       heading:"Lucas Errant",
-      sub:"Ghoul Transferred into Frostheim • Stigma: Iggnam",
+      sub:"Overview",
       src:"content/ghouls/frostheim/lucas/index.md"
     },
+    {
+  id:"lucas-logs",
+  subject:"lucas",
+  heading:"Lucas Errant — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/frostheim/lucas/logs.md"
+},
     {
       id:"lucas-archive-2024-09-03",
       subject:"lucas",
@@ -1103,7 +1168,16 @@ aii: {
       status:"archive",
       heading:"First Impressions",
       sub:"Transfer from Emrys",
-      src:"content/ghouls/frostheim/lucas/archive/2024-09-03-first-impressions.md"
+      src:"content/ghouls/frostheim/lucas/2024-09-03-first-impressions.md"
+    },
+    {
+      id:"lucas-2024-09-05",
+      subject:"lucas",
+      date:"2024-09-05",
+      status:"Entry",
+      heading:"Weighed into Frostheim",
+      sub:"White-Gloved Gentlemanly Type",
+      src:"content/ghouls/frostheim/lucas/2024-09-05.md"
     },
     {
       id:"lucas-gallery",
@@ -1117,8 +1191,15 @@ aii: {
       id:"kaito",
       collect_updates_for:"kaito",
       heading:"Kaito Fuji",
-      sub:"Questions",
+      sub:"Overview",
       src:"content/ghouls/frostheim/kaito/index.md"
+    },
+       {
+      id:"kaito-logs",
+      subject:"kaito",
+      heading:"Kaito Fuji — Field Logs",
+      sub:"Chronological Record",
+      src:"content/ghouls/frostheim/kaito/logs.md"
     },
     {
       id:"kaito-archive-2024-07-30",
@@ -1127,7 +1208,16 @@ aii: {
       status:"archive",
       heading:"First Impressions",
       sub:"Not Frostheim Material",
-      src:"content/ghouls/frostheim/kaito/archive/2024-07-30-first-impressions.md"
+      src:"content/ghouls/frostheim/kaito/2024-07-30-first-impressions.md"
+    },
+    {
+      id:"kaito-2024-08-25",
+      subject:"kaito",
+      date:"2024-08-25",
+      status:"Entry",
+      heading:"Debts to Settle",
+      sub:"Odd Trinket",
+      src:"content/ghouls/frostheim/kaito/2024-08-25.md"
     },
     {
       id:"kaito-gallery",
@@ -1154,17 +1244,33 @@ aii: {
       id:"alan",
       collect_updates_for:"alan",
       heading:"Alan Mido",
-      sub:"Secret Meetings",
+      sub:"Overview",
       src:"content/ghouls/vagastrom/alan/index.md"
     },
     {
-      id:"alan-archive-2024-08-05",
+      id:"alan-logs",
+      subject:"alan",
+      heading:"Alan Mido — Field Logs",
+      sub:"Chronological Record",
+      src:"content/ghouls/vagastrom/alan/logs.md"
+      },
+    {
+      id:"alan-2024-08-05",
       subject:"alan",
       date:"2024-08-05",
-      status:"archive",
+      status:"Entry",
       heading:"First Impressions",
-      sub:"Vagastrom Captain • Rumored Past",
-      src:"content/ghouls/vagastrom/alan/archive/2024-08-05-first-impressions.md"
+      sub:"Rumored Past",
+      src:"content/ghouls/vagastrom/alan/2024-08-05-first-impressions.md"
+    },
+        {
+      id:"alan-2024-09-02",
+      subject:"alan",
+      date:"2024-09-02",
+      status:"Entry",
+      heading:"Secret Meetings",
+      sub:"With Ishibashi Tohma?",
+      src:"content/ghouls/vagastrom/alan/2024-09-02.md"
     },
     {
       id:"alan-gallery",
@@ -1182,13 +1288,29 @@ aii: {
       src:"content/ghouls/vagastrom/leo/index.md"
     },
     {
+  id:"leo-logs",
+  subject:"leo",
+  heading:"Leo Kurosagi — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/vagastrom/leo/logs.md"
+},
+    {
       id:"leo-archive-2024-09-07",
       subject:"leo",
       date:"2024-09-07",
       status:"archive",
       heading:"First Impressions",
       sub:"Like Bubblegum",
-      src:"content/ghouls/vagastrom/leo/archive/2024-09-07-first-impressions.md"
+      src:"content/ghouls/vagastrom/leo/2024-09-07-first-impressions.md"
+    },
+    {
+      id:"leo-2024-09-13",
+      subject:"leo",
+      date:"2024-09-13",
+      status:"Entry",
+      heading:"Vagastrom's Vice",
+      sub:"He's Smart, I'll Give Him That",
+      src:"content/ghouls/vagastrom/leo/2024-09-13.md"
     },
     {
       id:"leo-gallery",
@@ -1205,6 +1327,13 @@ aii: {
       sub:"Not Crushing or Anything",
       src:"content/ghouls/vagastrom/shohei/index.md"
     },
+          {
+        id:"shohei-logs",
+        subject:"shohei",
+        heading:"Shohei Haizono — Field Logs",
+        sub:"Chronological Record",
+        src:"content/ghouls/vagastrom/shohei/logs.md"
+      },
     {
       id:"shohei-archive-2024-09-05",
       subject:"shohei",
@@ -1212,7 +1341,16 @@ aii: {
       status:"archive",
       heading:"First Impressions",
       sub:"He Fights and Cooks?",
-      src:"content/ghouls/vagastrom/shohei/archive/2024-09-05-first-impressions.md"
+      src:"content/ghouls/vagastrom/shohei/2024-09-05-first-impressions.md"
+    },
+        {
+      id:"shohei-2024-09-12",
+      subject:"shohei",
+      date:"2024-09-12",
+      status:"Entry",
+      heading:"Jack of All Trades",
+      sub:"Too good at everything? Too good to be true.",
+      src:"content/ghouls/vagastrom/shohei/2024-09-12.md"
     },
     {
       id:"shohei-gallery",
@@ -1243,6 +1381,13 @@ aii: {
       src:"content/ghouls/jabberwock/haru/index.md"
     },
     {
+  id:"haru-logs",
+  subject:"haru",
+  heading:"Haru Sagara — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/jabberwock/haru/logs.md"
+},
+    {
       id:"haru-archive-2024-08-28",
       subject:"haru",
       date:"2024-08-28",
@@ -1266,6 +1411,13 @@ aii: {
       sub:"First Impressions",
       src:"content/ghouls/jabberwock/towa/index.md"
     },
+    {
+  id:"towa-logs",
+  subject:"towa",
+  heading:"Towa Otonashi — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/jabberwock/towa/logs.md"
+},
 
     /* -------- TOWA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1295,6 +1447,13 @@ aii: {
       sub:"First Impressions",
       src:"content/ghouls/jabberwock/ren/index.md"
     },
+    {
+  id:"ren-logs",
+  subject:"ren",
+  heading:"Ren Shiranami — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/jabberwock/ren/logs.md"
+},
 
     /* -------- REN — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1337,6 +1496,13 @@ aii: {
       sub:"First Impressions",
       src:"content/ghouls/sinostra/taiga/index.md"
     },
+    {
+  id:"taiga-logs",
+  subject:"taiga",
+  heading:"Taiga Hoshibami — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/sinostra/taiga/logs.md"
+},
 
     /* -------- TAIGA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1367,6 +1533,13 @@ aii: {
       src:"content/ghouls/sinostra/romeo/index.md"
     },
     {
+  id:"romeo-logs",
+  subject:"romeo",
+  heading:"Romeo “Fico” Lucci — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/sinostra/romeo/logs.md"
+},
+    {
       id:"romeo-archive-2024-08-25",
       subject:"romeo",
       date:"2024-08-25",
@@ -1390,6 +1563,13 @@ aii: {
       sub:"First Impressions",
       src:"content/ghouls/sinostra/ritsu/index.md"
     },
+    {
+  id:"ritsu-logs",
+  subject:"ritsu",
+  heading:"Ritsu Shinjo — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/sinostra/ritsu/logs.md"
+},
 
     /* -------- RITSU — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1423,6 +1603,7 @@ aii: {
       sub:"Roster & Links",
       src:"content/ghouls/hotarubi/index.md"
     },
+    
 
     /* -------- SUBARU KAGAMI -------- */
     {
@@ -1432,6 +1613,13 @@ aii: {
       sub:"First Impressions",
       src:"content/ghouls/hotarubi/subaru/index.md"
     },
+    {
+  id:"subaru-logs",
+  subject:"subaru",
+  heading:"Subaru Kagami — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/hotarubi/subaru/logs.md"
+},
     {
       id:"subaru-archive-2024-07-30",
       subject:"subaru",
@@ -1457,6 +1645,13 @@ aii: {
       src:"content/ghouls/hotarubi/haku/index.md"
     },
     {
+  id:"haku-logs",
+  subject:"haku",
+  heading:"Haku Kusanagi — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/hotarubi/haku/logs.md"
+},
+    {
       id:"haku-archive-2024-07-27",
       subject:"haku",
       date:"2024-07-27",
@@ -1480,6 +1675,13 @@ aii: {
       sub:"Ghost",
       src:"content/ghouls/hotarubi/zenji/index.md"
     },
+    {
+  id:"zenji-logs",
+  subject:"zenji",
+  heading:"Zenji Kotodama — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/hotarubi/zenji/logs.md"
+},
     {
       id:"zenji-archive-2024-08-24",
       subject:"zenji",
@@ -1517,6 +1719,13 @@ aii: {
       sub:"Ancient",
       src:"content/ghouls/obscuary/ed/index.md"
     },
+    {
+  id:"edward-logs",
+  subject:"edward",
+  heading:"Edward Hart — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/obscuary/ed/logs.md"
+},
 
     /* -------- EDWARD — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1546,6 +1755,13 @@ aii: {
       sub:"Bar Owner • Touch = Death",
       src:"content/ghouls/obscuary/rui/index.md"
     },
+    {
+  id:"rui-logs",
+  subject:"rui",
+  heading:"Rui Mizuki — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/obscuary/rui/logs.md"
+},
 
     /* -------- RUI — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1575,6 +1791,13 @@ aii: {
       sub:"Half-Werewolf • Ultio Prison",
       src:"content/ghouls/obscuary/lyca/index.md"
     },
+    {
+  id:"lyca-logs",
+  subject:"lyca",
+  heading:"Lyca Colt — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/obscuary/lyca/logs.md"
+},
 
     /* -------- LYCA — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1617,6 +1840,13 @@ aii: {
       sub:"Doctor • Captain",
       src:"content/ghouls/mortkranken/yuri/index.md"
     },
+    {
+  id:"yuri-logs",
+  subject:"yuri",
+  heading:"Yuri Isami — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/mortkranken/yuri/logs.md"
+},
 
     /* -------- YURI — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -1646,6 +1876,13 @@ aii: {
       sub:"Frankenstein(?) • Deadpan",
       src:"content/ghouls/mortkranken/jiro/index.md"
     },
+    {
+  id:"jiro-logs",
+  subject:"jiro",
+  heading:"Jiro Kirisaki — Field Logs",
+  sub:"Chronological Record",
+  src:"content/ghouls/mortkranken/jiro/logs.md"
+},
 
     /* -------- JIRO — ARCHIVE PLACEHOLDER (HIDDEN) -------- */
     /*
@@ -2229,6 +2466,11 @@ if (portrait){
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeBox(); });
 })();
 
+/* Sticky-note post-processor: > ?? text → yellow note blockquote */
+function applyStickyNotes(html){
+  return html.replace(/<blockquote>\s*<p>\?\?\s*/g, '<blockquote class="sticky-note"><p>');
+}
+
 /* ---------------- Markdown hydration ---------------- */
 async function hydrateMarkdown(book){
   const pages = (book.sections || []).flatMap(s => s.pages || []);
@@ -2239,7 +2481,7 @@ async function hydrateMarkdown(book){
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       const md = await res.text();
       p.body = (window.marked?.parse)
-        ? window.marked.parse(md)
+        ? applyStickyNotes(window.marked.parse(md))
         : `<pre class="md-raw">${escapeHtml(md)}</pre>`;
     }catch(err){
       p.body = `<p class="meta">Couldn’t load <code>${p.src}</code><br>${escapeHtml(String(err))}</p>`;

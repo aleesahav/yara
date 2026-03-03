@@ -3,3 +3,7 @@ Everyone says he killed someone, and I guess I can believe it. His stigma has so
 I can’t deny it though, despite being inept in social cues and technology, he’s got serious leader vibes, which makes for a good Captain, I suppose.
 
 Rumor says his real name isn’t Mido…
+
+---
+
+[← Back to Vagastrom](#vagastrom:index) · [View All Entries](#vagastrom:alan-logs) · [Open Gallery](#vagastrom:alan-gallery)

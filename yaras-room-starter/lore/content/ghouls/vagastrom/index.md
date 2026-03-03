@@ -1,5 +1,17 @@
-<ul>
-  <li><a href="#vagastrom:alan">Alan Mido — Profile</a> · <a href="#vagastrom:alan-gallery">Gallery</a></li>
-  <li><a href="#vagastrom:leo">Leo Kurosagi — Profile</a> · <a href="#vagastrom:leo-gallery">Gallery</a></li>
-  <li><a href="#vagastrom:shohei">Shohei Haizono — Profile</a> · <a href="#vagastrom:shohei-gallery">Gallery</a></li>
-</ul>
+<div class="ghoul-grid">
+  <a class="ghoul-card" href="#vagastrom:alan" title="Alan Mido">
+    <img class="ghoul-portrait" src="assets/ghouls/alan_portrait.png" alt="Alan Mido portrait">
+    <span class="ghoul-name">Alan Mido</span>
+  </a>
+
+  <a class="ghoul-card" href="#vagastrom:leo" title="Leo Kurosagi">
+    <img class="ghoul-portrait" src="assets/ghouls/leo_portrait.png" alt="Leo Kurosagi portrait">
+    <span class="ghoul-name">Leo Kurosagi</span>
+  </a>
+
+  <a class="ghoul-card" href="#vagastrom:shohei" title="Shohei Haizono">
+    <img class="ghoul-portrait" src="assets/ghouls/shohei_portrait.png" alt="Shohei Haizono portrait">
+    <span class="ghoul-name">Shohei Haizono</span>
+  </a>
+</div>
+

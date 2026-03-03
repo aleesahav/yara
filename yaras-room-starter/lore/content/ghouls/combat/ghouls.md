@@ -12,7 +12,7 @@ This differs from Aether Academy, which uses highly specialized field operatives
 
 In my case, Aether Academy sent me to Japan for punishment and further observation before my trial in a year.  
 
-*I don't believe I'm a ghoul, so that’s why I’m studying them—to see whether I agree with Aether’s conclusion of what I became after I subjugated (?) the Atricordis.*
+> ?? *I don't believe I'm a ghoul, so that’s why I’m studying them—to see whether I agree with Aether’s conclusion of what I became after I subjugated (?) the Atricordis.*
 
 ---
 

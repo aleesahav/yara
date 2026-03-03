@@ -6,8 +6,12 @@ Then, when I didn’t respond, they said even louder, Hey, bitch, we complimente
 
 I was ready to fight him, too, but when I looked up… Well.
 
-I guess he was charming enough with that stupid smile as he flipped the other guy to the ground, like he was thrilled. Fuck. That just got me…
+I guess he was charming enough with that stupid smile as he flipped the other guy to the ground, like he was thrilled. Fuck. That just got me… <!-- pagebreak -->
 
 When the Red Vests fucked off, the kid told me his name. Told me he’s going to open up a food truck on campus.
 
 I reluctantly asked how I could pay him back for saving a poor fucking wench like me. He laughed. He just told me to be a taste tester before the truck opens up. Free of charge. Free food? Fuck yeah.
+
+---
+
+[← Back to Vagastrom](#vagastrom:index) · [View All Entries](#vagastrom:shohei-logs) · [Open Gallery](#vagastrom:shohei-gallery)

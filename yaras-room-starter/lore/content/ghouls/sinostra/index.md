@@ -1,4 +1,16 @@
+<div class="ghoul-grid">
+  <a class="ghoul-card" href="#sinostra:taiga" title="Taiga Hoshibami">
+    <img class="ghoul-portrait" src="assets/ghouls/taiga_portrait.png" alt="Taiga Hoshibami portrait">
+    <span class="ghoul-name">Taiga Hoshibami</span>
+  </a>
 
-- [Taiga Hoshibami — Profile](#sinostra:taiga) · [Gallery](#sinostra:taiga-gallery)
-- [Romeo Lucci — Profile](#sinostra:romeo) · [Gallery](#sinostra:romeo-gallery)
-- [Ritsu Shinjo — Profile](#sinostra:ritsu) · [Gallery](#sinostra:ritsu-gallery)
+  <a class="ghoul-card" href="#sinostra:romeo" title="Romeo Lucci">
+    <img class="ghoul-portrait" src="assets/ghouls/romeo_portrait.png" alt="Romeo Lucci portrait">
+    <span class="ghoul-name">Romeo Lucci</span>
+  </a>
+
+  <a class="ghoul-card" href="#sinostra:ritsu" title="Ritsu Shinjo">
+    <img class="ghoul-portrait" src="assets/ghouls/ritsu_portrait.png" alt="Ritsu Shinjo portrait">
+    <span class="ghoul-name">Ritsu Shinjo</span>
+  </a>
+</div>

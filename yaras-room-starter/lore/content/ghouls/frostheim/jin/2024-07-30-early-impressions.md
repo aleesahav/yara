@@ -6,3 +6,9 @@ He’s isolated now, and I don’t know if he’s even real.
 
 I’ve been here about a week. I have yet to meet him, despite me being another ghoul sorted into his House.
 
+
+---
+
+[← Back to Frostheim](#frostheim:index) · 
+[View All Entries](#frostheim:jin-logs) · 
+[Open Gallery](#frostheim:jin-gallery)

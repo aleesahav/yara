@@ -32,10 +32,14 @@ I've been down there once and refuse to go again for that very reason.
 
 ### Captain’s Quarters
 
-Captain Jin Kamurai’s room is located in the back of the castle on the top floor, obviously to ward off any visitors. To further amplify that, it's secured with anomalous soundproofing with no sound able to come in or out of the room. 
+Captain Jin Kamurai’s room is located in the back of the castle on the top floor, obviously to ward off any visitors. To further amplify that, it's secured with anomalous soundproofing with no sound able to come in or out of the room. <!-- pagebreak -->
 
 Whenever anyone visits him, he requires them to text Ishibashi or himself directly, and commands them to knock a certain amount of times (different each time) to verify it's truly them at the door.
 
 ### The Greenhouse
 
 ### The Lab
+
+---
+
+[← Back to Frostheim](#frostheim:index)

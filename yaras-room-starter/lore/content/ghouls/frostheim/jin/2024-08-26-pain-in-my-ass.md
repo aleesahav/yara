@@ -5,3 +5,9 @@ I get what they mean by the rumors that he was some arrogant, tyrant of an assho
 Every time he speaks—although rare—it’s always telling me what to do. Often times, things he refuses to do. Either he’s lazy or entitled, but either way, his personality makes me want to fucking strangle him.
 
 Perhaps my thoughts of murder are so loud when I’m around him, that I actually forget about Whispering in my head.
+
+---
+
+[← Back to Frostheim](#frostheim:index) · 
+[View All Entries](#frostheim:jin-logs) · 
+[Open Gallery](#frostheim:jin-gallery)

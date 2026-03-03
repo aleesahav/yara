@@ -10,7 +10,7 @@ To me, it’s not clear what those ghouls are giving up in return.
 
 > According to the Chancellor, Cornelius: he states that “the true identity of demons is not known,” and that Darkwick’s funding research to ~~snakes~~ **researchers** like Hyde, who’s stated clearly that even to him, “demons are uncharted territory,” and that anomalies involved in demonic incidents may hold answers.
 
-*I have this feeling that everyone here knows more than they’re letting on, of course.*
+> ?? *I have this feeling that everyone here knows more than they’re letting on, of course.*
 
 ---
 

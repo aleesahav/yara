@@ -4,6 +4,7 @@ Rumored to be the Institute’s most brutal and rigorous facility, Noire is an a
 
 Clad in gothic stone and shadowed by ancient pine forests, Noire resembles a fortress more than a school. Cadets train alongside near-corrupted artifacts, engage in live combat simulations against replicated anomalies, and are indoctrinated into the darker reaches of anomaly warfare through the study of forbidden grimoires on demonology, ritual bindings, blood curses, and occult conditioning techniques few are ever meant to know.<!-- pagebreak -->
 
+> ?? I only know about Noire because of what I found out in Brice's study when he has to consult on odd artifacts and even odder anomalies. Noire consulted him a number of times, mentioning a thing called "Lazarus" a few times. I can't tell if its a weapon or a monster...
 
 Those who survive Noire are deployed into global black ops teams and special anomaly response units.
 

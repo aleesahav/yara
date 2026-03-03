@@ -12,4 +12,4 @@
 
 ---
 
-<a href="#frostheim:jin">← Back to Frostheim</a>
+[← Back to Frostheim](#frostheim:jin)

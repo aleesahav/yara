@@ -8,4 +8,8 @@ And, let me tell you, he’s not ashamed to show off his dirty gloves. It’s mo
 
 I want to ruin that mask. I want to find out what’s underneath it.
 
+---
 
+[← Back to Frostheim](#frostheim:index) · 
+[View All Entries](#frostheim:tohma-logs) · 
+[Open Gallery](#frostheim:tohma-gallery)

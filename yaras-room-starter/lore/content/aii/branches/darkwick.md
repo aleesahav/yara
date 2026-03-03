@@ -1,6 +1,6 @@
 > On its own artificial island in Tokyo Bay, with perfect views of the Rainbow Bridge, this anomalous island is home to Darkwick Academy. With grounds that stretch out for miles and are surrounded on all sides by thick woods, the whole campus is an anomaly in itself—it appears far more spacious inside than it does from the mainland. Stone paths wind through colorful flower beds across lush green grass. At the center of the fields stands a glittering fountain. The main building rises like a gothic castle, and within it lies a vast entry hall lined with marble pillars beneath an ornately decorated ceiling and embroidered plush carpets.
 
-> While Darkwick is known to civilians as an illustrious private academy with a selective and secretive admissions process—its campus strictly prohibiting civilian entry—within the AII it is regarded as the largest and most prestigious branch in anomalous research and education, consistently ranked the <span class="fan">top post-baccalaureate academy</span> in the field.
+> While Darkwick is known to civilians as an illustrious private academy with a selective and secretive admissions process with its campus strictly prohibiting civilian entry, within the AII it is regarded as the largest and most prestigious branch in anomalous research and education, consistently ranked the <span class="fan">top post-baccalaureate academy</span> in the field.
 
 <!-- pagebreak -->
 

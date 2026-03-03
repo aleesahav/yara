@@ -1,4 +1,4 @@
-Each branch of the AII (with the exception of Noir Academy) maintains a **Department of Artifact Regulation**, functioning as both customs authority and treasury for arcane objects.
+Each branch of the AII (with the exception of Noir Academy) maintains a Department of Artifact Regulation, functioning as both customs authority and treasury for arcane objects.
 
 All recovered artifacts must pass through this department for inspection, classification, and cataloging before they may be issued or licensed to students or AII personnel for use.
 
