@@ -313,18 +313,16 @@
   min-height:0;
 }
 
-@media (max-width: 740px){
-  /* back button: pin to corner on small screens */
+@media (max-width: 1100px){
+  /* back button: pin to corner on narrow windows */
   .back-home{
-    position:fixed;
-    right:10px;
-    top:10px;
-    transform:none;
-    font-size:13px;
-    padding:8px 12px;
+    position:fixed; left:14px; bottom:18px;
+    top:auto; right:auto; transform:none;
+    font-size:13px; padding:9px 12px;
   }
-  .back-home:hover{ transform:none; }
-
+  .back-home:hover{ transform:translateX(-2px); background:rgba(255,213,74,.2); }
+}
+@media (max-width: 740px){
   /* binder modal: nearly full-screen on phones */
   .binderModal__panel{
     width:calc(100vw - 8px);

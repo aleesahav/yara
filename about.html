@@ -121,10 +121,15 @@
     border:0; margin:16px 0 12px;
   }
 
-  /* Mobile */
+  /* Narrow / mobile */
   @media (max-width:1100px){
     .grid{ grid-template-columns:1fr; }
-    .return{ position:fixed; left:auto; right:clamp(12px,3vw,20px); }
+    .return{
+      position:fixed; right:14px; bottom:18px;
+      top:auto; left:auto; transform:none;
+      font-size:13px; padding:9px 12px;
+    }
+    .return:hover{ transform:translateX(2px); background:rgba(255,213,74,.2); }
   }
 </style>
 

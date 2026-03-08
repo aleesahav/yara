@@ -352,6 +352,14 @@
     border: 1px solid rgba(42,49,71,.85);
   }
 
+  @media (max-width: 1100px){
+    .back-home{
+      position:fixed; left:14px; bottom:18px;
+      top:auto; transform:none;
+      font-size:13px; padding:9px 12px;
+    }
+    .back-home:hover{ transform:translateX(-2px); background:rgba(255,213,74,.2); }
+  }
   @media (max-width: 740px){
     .modal__panel::after{ display:none; }
     /* full-screen modal on phones — override JS inline position */
