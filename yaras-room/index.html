@@ -373,7 +373,15 @@
     }
     .frame-shell{ padding:6px; height:100%; }
     .frame-shell--wide{ height:100%; }
-    .frame-shell--phone{ height:100%; }
+    /* phone modal: contained size, centered in the full-screen panel */
+    .frame-shell--phone{
+      height: auto; align-items:center; justify-content:center;
+      padding: 24px 12px;
+    }
+    .frame-shell--phone iframe{
+      width: min(390px, calc(100vw - 32px));
+      height: min(75vh, 680px);
+    }
     /* bigger tap target for close button on touch screens */
     .modal__close{
       font-size:22px;
