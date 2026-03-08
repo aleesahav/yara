@@ -889,6 +889,7 @@ function clearUI() {
   hideSprite("left");
   hideSprite("center");
   hideSprite("right");
+  undimAll();
   setTalkHead(false);
 }
 
@@ -1080,6 +1081,15 @@ function applyTags(tags) {
     }
 
     if (t.startsWith("hide:")) { hideSprite(t.slice(5).trim()); continue; }
+
+    if (t.startsWith("focus:")) { focusSprite(t.slice(6).trim()); continue; }
+    if (t.startsWith("dim:")) { dimSprite(t.slice(4).trim()); continue; }
+    if (t.startsWith("undim:")) {
+      const v = t.slice(6).trim().toLowerCase();
+      if (v === "all") undimAll(); else undimSprite(v);
+      continue;
+    }
+
     if (t.startsWith("speaker:")) { setSpeakerUI(t.slice(8).trim()); continue; }
 
     if (t.startsWith("fx:")) {
@@ -1352,6 +1362,31 @@ function hideSprite(slot) {
   if (!img) return;
   img.src = "";
   img.classList.add("hidden");
+}
+
+function dimSprite(slot) {
+  const img = slotToEl(slot);
+  if (img) img.classList.add("dimmed");
+}
+
+function undimSprite(slot) {
+  const img = slotToEl(slot);
+  if (img) img.classList.remove("dimmed");
+}
+
+function undimAll() {
+  [slotLeft, slotCenter, slotRight].forEach(el => el?.classList.remove("dimmed"));
+}
+
+function focusSprite(slot) {
+  const focus = String(slot).toLowerCase();
+  if (focus === "head" || focus === "yara") { undimAll(); [slotLeft, slotCenter, slotRight].forEach(el => el?.classList.add("dimmed")); return; }
+  ["left", "center", "right"].forEach(s => {
+    const img = slotToEl(s);
+    if (!img) return;
+    if (s === focus) img.classList.remove("dimmed");
+    else img.classList.add("dimmed");
+  });
 }
 
 function slotToEl(slot) {

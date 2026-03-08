@@ -2,6 +2,7 @@
   "id": "ep00",
   "title": "Prologue: The Whispering Tides",
   "chapters": [
-    { "id": "ch01", "title": "I. That Dream Again", "file": "chapters/ch01/story.json" }
+    { "id": "ch01", "title": "I. That Dream Again", "file": "chapters/ch01/story.json" },
+    { "id": "ch01", "title": "II. The Whispering", "file": "chapters/ch01/story.json" }
   ]
 }

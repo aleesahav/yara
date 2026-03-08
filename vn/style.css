@@ -349,14 +349,18 @@ body{
 .spriteLayer{ position:absolute; inset:0; pointer-events:none; }
 .sprite{
   position:absolute;
-  bottom:18%;
-  max-height:80%;
-  max-width:40%;
+  bottom:-40%;
+  max-height:130%;
+  max-width:60%;
   filter:none !important;
 }
 .slot-left{ left:6%; }
 .slot-center{ left:50%; transform:translateX(-50%); }
 .slot-right{ right:6%; }
+
+/* Sprite dim (inactive speaker) */
+.sprite{ transition: opacity 0.25s ease; }
+.sprite.dimmed{ opacity: 0.4; }
 
 /* Talk head */
 .talkHead{
@@ -1196,4 +1200,19 @@ body{
   }
   #dialogueBox.shiftForHead{ padding-left: 18px; }
   .text{ font-size:18px; }
+}
+
+/* Phone landscape: collapse talk head + tighten dialogue */
+@media (max-height: 500px) and (orientation: landscape){
+  :root{
+    --talkH: clamp(110px, 20vh, 160px);
+    --talkMaxW: 180px;
+    --talkLeft: 8px;
+  }
+  .stage{ max-height:100vh; }
+  .screen{ padding:4px 8px; }
+  .dialogueBox{ min-height:90px; padding:10px 14px 12px; }
+  .text{ font-size:16px; line-height:1.45; min-height:48px; }
+  .choices{ gap:6px; margin-top:8px; }
+  .choiceBtn{ font-size:15px; padding:10px 12px; }
 }

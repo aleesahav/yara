@@ -6,9 +6,9 @@
 <title>Yara — Crumpled Notes</title>
 <style>
   :root{
-    --bg:#0b0b0d; --ink:#eaeaea; --muted:#9aa0b5; --card:#151518; --line:#2a2a2e;
+    --bg:#0b070f; --ink:#E6E7F0; --muted:#A9AFBB; --card:rgba(25,18,42,.7); --line:#2f223e;
   }
-  html,body{margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  html,body{margin:0; background:transparent; color:var(--ink); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
   .wrap{max-width:min(1100px,96vw); margin:0 auto; padding:clamp(12px,2vw,20px);}
 
   header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;}
@@ -28,7 +28,7 @@
   .thumb-wrap{
     position:relative; width:100%;
     aspect-ratio:1 / 1;               /* change to 1 / 1 for squares */
-    overflow:hidden; background:#0f1014;
+    overflow:hidden; background:rgba(11,7,15,.5);
     cursor:pointer;
   }
   img.thumb{
@@ -37,23 +37,23 @@
   }
   .card:hover .thumb{ transform:scale(1.02); filter:brightness(1.05) }
 
-  .topbar{position:sticky; top:0; background:linear-gradient(180deg, rgba(11,11,13,.96), rgba(11,11,13,.86));
+  .topbar{position:sticky; top:0; background:linear-gradient(180deg, rgba(21,9,32,.96), rgba(11,7,15,.86));
           border-bottom:1px solid var(--line); padding:.6rem .8rem; z-index:10; border-radius:10px;}
   .topbar .count{opacity:.8; font-size:.9rem;}
 
   /* Lightbox */
   .lightbox{
     position:fixed; inset:0; z-index:9999; display:none; place-items:center;
-    background:rgba(0,0,0,.82); backdrop-filter: blur(2px);
+    background:rgba(11,7,15,.88); backdrop-filter: blur(4px);
   }
   .lightbox[aria-hidden="false"]{ display:grid; }
   .lb__frame{ position:relative; max-width:min(92vw, 1400px); max-height:92vh; }
   .lb__img{
-    max-width:100%; max-height:92vh; display:block; border-radius:12px; border:1px solid #2a3147;
+    max-width:100%; max-height:92vh; display:block; border-radius:12px; border:1px solid #2f223e;
     box-shadow:0 28px 80px rgba(0,0,0,.6);
   }
   .lb__close{
-    position:absolute; top:-44px; right:0; border:1px solid #2a3147; background:#111627; color:#eef;
+    position:absolute; top:-44px; right:0; border:1px solid #2f223e; background:rgba(25,18,42,.9); color:var(--ink);
     border-radius:10px; padding:6px 10px; cursor:pointer;
   }
   @media (max-width:680px){ .lb__close{ top:8px; right:8px; } }

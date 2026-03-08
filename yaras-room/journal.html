@@ -6,18 +6,19 @@
 <title>Yara’s Journal</title>
 <style>
 :root{
-  --ink:#ececf2; --bg:#0b0b0d; --border:#232739; --accent:#8f4aff;
+  --ink:#E6E7F0; --bg:#0b070f; --border:#2f223e; --accent:#8f4aff;
+  --muted:#A9AFBB;
   --cardW: clamp(140px, 52%, 240px);
   --font-stack: system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans", Helvetica, Arial, sans-serif;
   --entry-label: var(--ink);
-  --entry-key:   #a8afbd;
+  --entry-key:   var(--muted);
 }
 
 /* base */
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font: 16px/1.5 var(--font-stack);
 }
@@ -26,8 +27,8 @@ button, input, textarea, select { font: inherit; }
 /* shell */
 .journal{
   height:100dvh; width:100%;
-  background:linear-gradient(180deg,#1a1e2a,#0f131d);
-  border:1px solid var(--border);
+  background:transparent;
+  border:1px solid transparent;
   box-sizing:border-box;
   display:grid; grid-template-rows: 52px 1fr 96px;
   overflow:hidden;
@@ -35,12 +36,12 @@ button, input, textarea, select { font: inherit; }
 
 .journal__top{
   display:flex;align-items:center;gap:12px;padding:8px 12px;
-  background:#0e1320;border-bottom:1px solid var(--border)
+  background:rgba(21,15,36,.85);border-bottom:1px solid var(--border)
 }
 .journal__title{font-weight:800;letter-spacing:.2px}
 .topback-btn{
   margin-left:auto; display:inline-flex; align-items:center; gap:8px;
-  border:1px solid #2a3147; background:#121626; color:#eef;
+  border:1px solid #2f223e; background:rgba(25,18,42,.8); color:var(--ink);
   border-radius:10px; padding:6px 10px; cursor:pointer; font-weight:600;
 }
 .topback-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
@@ -60,17 +61,17 @@ button, input, textarea, select { font: inherit; }
 .journal__pages.active{opacity:1;transform:translateY(0);z-index:1}
 
 .jpage{
-  background:#0f121a;border:1px solid #1b2132;border-radius:14px;
+  background:rgba(19,11,32,.7);border:1px solid #2f223e;border-radius:14px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.03); overflow:hidden;
   display:grid; grid-template-rows:auto 1fr auto; min-height:0;
 }
-.jpage__head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0f1422;border-bottom:1px solid #1b2132;font-weight:700}
+.jpage__head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(21,15,36,.8);border-bottom:1px solid #2f223e;font-weight:700}
 .jpage__body{padding:14px; overflow:hidden; display:flex; flex-direction:column}
-.jpage__foot{display:flex;justify-content:flex-end;align-items:center;padding:8px 14px;background:#0f1422;border-top:1px solid #1b2132;opacity:.85; min-height:38px}
+.jpage__foot{display:flex;justify-content:flex-end;align-items:center;padding:8px 14px;background:rgba(21,15,36,.8);border-top:1px solid #2f223e;opacity:.85; min-height:38px}
 
 /* photo block */
 .photo{
-  background:#0b0e17;border:1px solid #2a3147;border-radius:10px;padding:10px 10px 12px;
+  background:rgba(11,7,15,.5);border:1px solid #2f223e;border-radius:10px;padding:10px 10px 12px;
   box-shadow:0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
   display:flex; gap:12px; align-items:flex-start; min-height:0;
 }
@@ -80,8 +81,8 @@ button, input, textarea, select { font: inherit; }
   border-radius: 8px;
   overflow: hidden;
   position: relative;
-  background:#0b0e17;
-  border:1px solid #2a3147;
+  background:rgba(11,7,15,.5);
+  border:1px solid #2f223e;
   flex: 0 0 auto;
 }
 .thumb{
@@ -105,18 +106,18 @@ button, input, textarea, select { font: inherit; }
 /* == entry belt with arrows (matches Armoire pattern) == */
 .entrybar{
   border-top:1px solid var(--border);
-  background:#0e1320;
+  background:rgba(21,15,36,.85);
   display:grid; grid-template-columns:48px 1fr 48px; align-items:center;
   gap:8px; padding:10px;
 }
 .entrystrip{
   overflow:auto hidden; scroll-snap-type:x mandatory; scrollbar-width:thin;
   display:flex; gap:12px; padding:6px;
-  border:1px solid #1f2638; border-radius:12px; background:#101626;
+  border:1px solid #2f223e; border-radius:12px; background:rgba(11,7,15,.5);
   height:100%;
 }
 .stripBtn{
-  border:1px solid #2a3147; background:#121626; color:var(--ink);
+  border:1px solid #2f223e; background:rgba(25,18,42,.8); color:var(--ink);
   border-radius:10px; padding:8px 10px; height:100%; cursor:pointer;
 }
 .stripBtn:disabled{ opacity:.5; cursor:not-allowed; }
@@ -124,12 +125,12 @@ button, input, textarea, select { font: inherit; }
 .entry{
   scroll-snap-align:center;
   flex:0 0 auto; display:flex; gap:8px; align-items:center; cursor:pointer;
-  border:1px solid #22263a; background:#121626; padding:8px; border-radius:12px; min-width:140px;
+  border:1px solid #2f223e; background:rgba(25,18,42,.7); padding:8px; border-radius:12px; min-width:140px;
   transition:transform .12s ease, border-color .12s ease;
 }
 .entry:hover{transform:translateY(-1px)}
-.entry.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(255,213,74,.1) inset}
-.entry-thumb{width:44px; height:44px; border-radius:8px; background:#0b0e17; border:1px solid #2a3147; overflow:hidden; display:grid; place-items:center;}
+.entry.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(143,74,255,.1) inset}
+.entry-thumb{width:44px; height:44px; border-radius:8px; background:rgba(11,7,15,.5); border:1px solid #2f223e; overflow:hidden; display:grid; place-items:center;}
 .entry-thumb img{width:100%; height:100%; object-fit:cover; object-position:center;}
 .entry-meta{display:grid; line-height:1.15}
 .entry-meta b{font-weight:700; font-size:.95rem; color: var(--entry-label); }
@@ -137,14 +138,14 @@ button, input, textarea, select { font: inherit; }
 
 /* Lightbox */
 .lightbox{
-  position:fixed; inset:0; background:rgba(4,6,12,.8);
+  position:fixed; inset:0; background:rgba(11,7,15,.85);
   display:none; align-items:center; justify-content:center;
   z-index:9999;
 }
 .lightbox.open{ display:flex; }
 .lightbox img{
   max-width:95vw; max-height:95vh;
-  object-fit:contain; border-radius:12px; border:1px solid #2a3147;
+  object-fit:contain; border-radius:12px; border:1px solid #2f223e;
   box-shadow:0 10px 30px rgba(0,0,0,.6);
 }
 

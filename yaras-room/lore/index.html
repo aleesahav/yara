@@ -8,11 +8,11 @@
 <style>
   :root{
     --accent:#8f4aff;
-    --bg:#0b0b0d;
-    --ink:#eaeaea;
+    --bg:#0b070f;
+    --ink:#E6E7F0;
     --gold:#ffd54a;
-    --panel-bg: rgba(18,18,22,.86);
-    --panel-bd: rgba(42,42,46,.85);
+    --panel-bg: rgba(25,18,42,.86);
+    --panel-bd: rgba(47,34,62,.85);
     --shadow: 0 22px 70px rgba(0,0,0,.65);
 
     --music-embed-h: 75px;
@@ -45,10 +45,10 @@
   header h1{ margin:0; font-size:clamp(18px,3vw,24px); letter-spacing:.2px; }
 
   .btn{
-    appearance:none; border:1px solid #2a2a2e; background:#151518; color:#ddd;
+    appearance:none; border:1px solid #2f223e; background:rgba(25,18,42,.8); color:var(--ink);
     padding:.5rem .75rem; border-radius:8px; cursor:pointer;
   }
-  .btn:hover{ border-color:#3a3a40; }
+  .btn:hover{ border-color:#4a3060; }
 
   .stage{
     width:100%; height:auto; display:block;
@@ -135,10 +135,10 @@
   .pos-mode .hover-visual{ opacity:.9 !important; outline:1px dashed #7ad; outline-offset:-1px; pointer-events:auto; cursor:move; }
   .pos-hud{
     position: fixed; bottom: 12px; left: 12px; z-index: 2000;
-    background: #0f1116; border: 1px solid #2a2a2e; border-radius: 8px;
-    padding: 10px 12px; font-size: 13px; color: #eaeaea;
+    background: rgba(25,18,42,.9); border: 1px solid #2f223e; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; color: var(--ink);
   }
-  .pos-hud code{ background:#12151e; padding:2px 4px; border-radius:4px; }
+  .pos-hud code{ background:rgba(11,7,15,.7); padding:2px 4px; border-radius:4px; }
   .pos-hud button{ margin-left:8px; }
 
   /* =========================================
@@ -171,8 +171,8 @@
     width:64px; height:64px;
     border-radius:999px;
     overflow:hidden;
-    background:#0b0d12;
-    border:1px solid #2a3147;
+    background:rgba(11,7,15,.5);
+    border:1px solid #2f223e;
     flex:0 0 auto;
   }
   .thought-pop .portrait img{ width:100%; height:100%; object-fit:cover; }
@@ -230,9 +230,9 @@
   display:none;
   place-items:center;
   padding: clamp(10px, 2vw, 18px);
-  background: rgba(0,0,0,.72);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(11,7,15,.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .binderModal.open{ display:grid; }
 
@@ -241,8 +241,10 @@
   height:min(860px, 94vh);
   border-radius:18px;
   overflow:hidden;
-  border:1px solid rgba(42,42,46,.85);
-  background: #0b0b0d;
+  border:1px solid rgba(47,34,62,.85);
+  background: rgba(25,18,42,.82);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
   box-shadow: 0 22px 70px rgba(0,0,0,.65);
 
   /* ✅ KEY FIX: bar is NOT overlaying the iframe anymore */
@@ -258,8 +260,8 @@
   gap:10px;
 
   padding:10px;
-  border-bottom:1px solid rgba(42,42,46,.85);
-  background: rgba(13,17,26,.92);
+  border-bottom:1px solid rgba(47,34,62,.85);
+  background: rgba(21,15,36,.92);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 
@@ -272,12 +274,12 @@
 .binderModal__title{
   font-weight:800;
   letter-spacing:.2px;
-  color:#eaeaea;
+  color:var(--ink);
   text-shadow: 0 6px 18px rgba(0,0,0,.6);
   padding:8px 10px;
   border-radius:999px;
-  background: rgba(15,15,20,.35);
-  border:1px solid rgba(42,42,46,.55);
+  background: rgba(25,18,42,.35);
+  border:1px solid rgba(47,34,62,.55);
   min-width:0;
 
   /* prevent long titles from wrecking layout */
@@ -291,7 +293,7 @@
   appearance:none;
   border:1px solid rgba(255,213,74,.65);
   background: rgba(255,213,74,.12);
-  color:#eaeaea;
+  color:var(--ink);
   border-radius:999px;
   padding:8px 12px;
   cursor:pointer;
@@ -305,10 +307,39 @@
   height:100%;
   border:0;
   display:block;
-  background:#0b0b0d;
+  background:transparent;
 
   /* ✅ important for grid children */
   min-height:0;
+}
+
+@media (max-width: 740px){
+  /* back button: pin to corner on small screens */
+  .back-home{
+    position:fixed;
+    right:10px;
+    top:10px;
+    transform:none;
+    font-size:13px;
+    padding:8px 12px;
+  }
+  .back-home:hover{ transform:none; }
+
+  /* binder modal: nearly full-screen on phones */
+  .binderModal__panel{
+    width:calc(100vw - 8px);
+    height:calc(100dvh - 8px);
+    border-radius:12px;
+  }
+
+  /* bigger close tap target */
+  .binderModal__close{
+    min-height:44px;
+    padding:10px 16px;
+  }
+
+  /* thought bubble full-width */
+  .thought-pop{ width:calc(100vw - 16px); }
 }
 
 </style>
@@ -559,7 +590,7 @@
         alt: "Yara, fond"
       }]],
       ['leona', [{
-        text: "Leona Kingscholar is my favorite Twisted Character! I sure do love a sleepy, grumpy type... Wait, a minute...",
+        text: "Leona is my favorite Twisted Character! I sure do love a sleepy, grumpy type... Wait, a minute...",
         img: UI + "Yara_Ghast.png",
         alt: "Yara, caught"
       }]],
@@ -579,7 +610,7 @@
         alt: "Yara, amused"
       }]],
       ['satan', [{
-        text: "You want to talk about a real man? Well... I guess he's not a man. And I guess he's not real, either... But, goodness,..",
+        text: "Isn't Satan the cutest thing?",
         img: UI + "Yara_Blushing_Happy.png",
         alt: "Yara, blushing"
       }]],

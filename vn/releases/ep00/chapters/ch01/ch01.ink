@@ -175,7 +175,7 @@ I stand up and push off the wall to stretch and wake up my sleepy bones.
 I haven't been sleeping well these days. Not that I've slept well at all for the last ten years, anyway, so naps are always welcome. 
 I reorient myself to the real world and remember what I was doing before I fell asleep.
 # sfx: waves
-Today is July 22nd. I've been sitting atop the Fort Point rooftop, facing the San Francisco Bay, listening to the rain pelt the ground below me and the waves crash against the rocky shore below.
+Today is July 20th. I've been sitting atop the Fort Point rooftop, facing the San Francisco Bay, listening to the rain pelt the ground below me and the waves crash against the rocky shore below.
 I've been waiting for the sun to set and the moon to reach it's peak fullness. 
 Never mind that I was supposed to be leading this Class C mission. 
 Surely the Vice Captain of Aether West and two <<exceptional>> cadets can handle subjugating a simple C-rank weather anomaly to stop this odd summer rain. 
@@ -215,26 +215,31 @@ You know, when you’re hell bent on revenge, and the day of retribution has com
 # flashback:on
 # head: child_neutral
 # bg: fourteen
-Ten years ago, on this day, a San Francisco County Child Protective Social worker showed up for me while I was away at summer camp. She sat me down and told me that my parents died in a horrific car accident. 
+Ten years ago, on this day, a San Francisco County Child Protective Social worker showed up for me while I was away at summer camp. She sat me down and told me that my parents died in a horrific car accident.
 # headfx: shakeHard
 Yara: W... what?
-Their bodies were so mangled that it was determined that a fourteen year old child shouldn't be allowed to see them. 
-That it would have been too… traumatizing, or something. 
-They <<did>> show me a picture of the accident, though, with the family car so unrecognizable from the damage. 
-# item:rings
+Their bodies were so mangled that it was determined that a fourteen year old child shouldn't be allowed to see them.
+That it would have been too… traumatizing, or something.
+They <<did>> show me a picture of the accident, though, with the family car so unrecognizable from the damage.
+# item: rings
 Social Worker: These were the only things of your parents that we could salvage off of them.
 Yara: ...
-# item:off
-
+# item: off
+# show: socialworker neutral center
+# focus: center
 Social Worker: I'm sorry, Mayari. As we know it, you don't have any other living relatives, so you'll need to be in temporary foster care until a more... permanent placement...
-But I wasn't listening. I was in disbelief. 
-#sfx: long_breath
+# focus: head
+But I wasn't listening. I was in disbelief.
+# sfx: long_breath
 Whispering: <<Mayari...>>
 Yara: <<Foster care?>> I don't...
-The Whispering always seemed to scream in my ear when something was amiss. It was an instinct, as much as it was a curse. 
+The Whispering always seemed to scream in my ear when something was amiss. It was an instinct, as much as it was a curse.
+# focus: center
 Social Worker: Yes. I'm sorry. We'll head back to San Francisco this evening and...
-I knew in my heart that whatever happened to my parents wasn't a car crash. 
-It was something entirely beyond what I would understand that day. 
+# focus: head
+I knew in my heart that whatever happened to my parents wasn't a car crash.
+It was something entirely beyond what I would understand that day.
+# hide: center
 # flashback:off
 # bg:fort_point
 # head:base_neutral
