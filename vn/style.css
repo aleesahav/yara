@@ -1193,9 +1193,9 @@ body{
    ========================================= */
 @media (max-width: 720px){
   :root{
-    --talkLeft: 10px;
-    --talkH: clamp(260px, 42vh, 380px);
-    --talkMaxW: 300px;
+    --talkLeft: 6px;
+    --talkH: clamp(140px, 48vw, 220px);
+    --talkMaxW: clamp(110px, 36vw, 200px);
     --talkGap: 10px;
   }
   #dialogueBox.shiftForHead{ padding-left: 18px; }
