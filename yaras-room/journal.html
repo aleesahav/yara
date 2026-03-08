@@ -150,6 +150,14 @@ button, input, textarea, select { font: inherit; }
 }
 
 @media (max-width: 860px){ .journal__pages{ grid-template-columns:1fr; } }
+
+@media (max-width: 740px){
+  html, body{ height:auto; overflow-y:auto; }
+  .journal{ height:auto; min-height:100dvh; grid-template-rows:52px auto 96px; }
+  .journal__top{ position:sticky; top:0; z-index:10; }
+  .entrybar{ position:sticky; bottom:0; z-index:10; }
+  .journal__spread{ overflow:visible; min-height:55vw; }
+}
 </style>
 </head>
 <body>

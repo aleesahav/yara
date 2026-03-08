@@ -354,9 +354,18 @@
 
   @media (max-width: 740px){
     .modal__panel::after{ display:none; }
-    .frame-shell{ padding:6px; }
-    .frame-shell--wide{ height: min(78vh, calc(100vh - 120px)); }
-    .frame-shell--phone{ height: min(88vh, calc(100vh - 80px)); }
+    /* full-screen modal on phones — override JS inline position */
+    .modal__panel{
+      width: calc(100vw - 8px) !important;
+      height: calc(100dvh - 8px) !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      border-radius: 12px;
+    }
+    .frame-shell{ padding:6px; height:100%; }
+    .frame-shell--wide{ height:100%; }
+    .frame-shell--phone{ height:100%; }
     /* bigger tap target for close button on touch screens */
     .modal__close{
       font-size:22px;
@@ -367,9 +376,7 @@
       align-items:center;
       justify-content:center;
     }
-    .thought-pop{ width:calc(100vw - 20px); }
-    /* thought bubble: clamp to lower third if it would overflow top */
-    .thought-pop{ max-height:60vh; overflow:auto; }
+    .thought-pop{ width:calc(100vw - 20px); max-height:60vh; overflow:auto; }
   }
 
   /* Debug */
@@ -528,7 +535,7 @@
         <button id="posMode" class="btn" type="button">Position Overlays</button>
       </div>
 
-      <span style="opacity:.7; font-size:.95rem;">Hover or tap objects in Yara's room to reveal her lore.</span>
+      <span style="opacity:.7; font-size:.95rem;">Hover or tap objects in Yara's room to reveal her lore. Website best enjoyed on desktop or large screens.</span>
     </header>
 
     <svg class="stage" viewBox="0 0 3600 2400" aria-labelledby="title desc" role="img">

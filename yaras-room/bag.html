@@ -145,6 +145,13 @@ html,body{
 .item__caption p { margin:0 0 .8em; }
 .item__caption p:last-child { margin-bottom:0; }
 
+@media (max-width: 740px){
+  html, body{ height:auto; overflow-y:auto; }
+  .bag{ height:auto; min-height:100dvh; grid-template-rows:54px auto var(--beltH); }
+  .bag__top{ position:sticky; top:0; z-index:10; }
+  .belt{ position:sticky; bottom:0; z-index:10; }
+  .stage{ overflow:visible; min-height:60vw; }
+}
 
 </style>
 
