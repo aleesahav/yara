@@ -750,6 +750,65 @@ button.close#closeBinder{
   cursor: pointer;
 }
 
+/* ── Mobile: single-page, scrollable binder ── */
+@media (max-width: 740px){
+  /* Stack binder: tabs go horizontal at top */
+  .binder{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "top"
+      "tabs"
+      "pages"
+      "foot";
+  }
+  .tabs{
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-left: none;
+    border-bottom: 1px solid var(--border);
+    height: auto;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .tab{
+    flex: 0 0 auto;
+    min-height: auto;
+    min-width: 60px;
+    padding: 8px 12px;
+    font-size: .8rem;
+  }
+  .tab__text{
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+  /* Pages area scrolls */
+  .pages{ overflow-y: auto; }
+  /* Single-column spread */
+  .spread{
+    position: relative;
+    inset: auto;
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .spine, .sheet.right{ display: none; }
+  /* Let left sheet grow with content */
+  .sheet.left{ overflow: visible; }
+  .sheetInner{ height: auto; }
+  .pageBody{ overflow: visible; height: auto; padding-bottom: 40px; }
+  /* Ghoul grid: single column on narrow screens */
+  .sheet .ghoul-grid{ grid-template-columns: 1fr; }
+  /* Close button: no tabsW offset */
+  .binder .closeBtn,
+  .binder .modalClose,
+  .binder [data-close],
+  .binder button[aria-label="Close"],
+  .binder #closeBtn,
+  .binder #closeBinder{ right: 10px; }
+  .top{ padding-right: 50px; }
+}
+
 </style>
 </head>
 
