@@ -1188,31 +1188,4 @@ body{
 }
 
 
-/* =========================================
-   Responsive tweaks
-   ========================================= */
-@media (max-width: 720px){
-  :root{
-    --talkLeft: 6px;
-    --talkH: clamp(140px, 48vw, 220px);
-    --talkMaxW: clamp(110px, 36vw, 200px);
-    --talkGap: 10px;
-  }
-  #dialogueBox.shiftForHead{ padding-left: 18px; }
-  .text{ font-size:18px; }
-}
 
-/* Phone landscape: collapse talk head + tighten dialogue */
-@media (max-height: 500px) and (orientation: landscape){
-  :root{
-    --talkH: clamp(180px, 55vh, 340px);
-    --talkMaxW: clamp(140px, 42vh, 270px);
-    --talkLeft: 8px;
-  }
-  .stage{ max-height:100vh; }
-  .screen{ padding:4px 8px; }
-  .dialogueBox{ min-height:90px; padding:10px 14px 12px; }
-  .text{ font-size:16px; line-height:1.45; min-height:48px; }
-  .choices{ gap:6px; margin-top:8px; }
-  .choiceBtn{ font-size:15px; padding:10px 12px; }
-}
