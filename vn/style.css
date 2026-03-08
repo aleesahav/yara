@@ -1205,8 +1205,8 @@ body{
 /* Phone landscape: collapse talk head + tighten dialogue */
 @media (max-height: 500px) and (orientation: landscape){
   :root{
-    --talkH: clamp(110px, 20vh, 160px);
-    --talkMaxW: 180px;
+    --talkH: clamp(140px, 34vh, 240px);
+    --talkMaxW: clamp(120px, 26vh, 200px);
     --talkLeft: 8px;
   }
   .stage{ max-height:100vh; }
