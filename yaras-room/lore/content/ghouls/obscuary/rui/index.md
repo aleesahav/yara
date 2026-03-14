@@ -1,8 +1,13 @@
-<img class="portrait" src="assets/ghouls/rui_portrait.png" alt="Rui Mizuki portrait">
+![Rui Mizuki portrait](assets/ghouls/rui_portrait.png)
 
-
-Flirt. Talks too much. If he touches you, you die—something like that. Makes a mean drink, though. I’ll humor him if the pours stay this good.
+**Role:**
+**Year:**
+**Birthday:**
+**Contracted Demon:**
+**Artifact:**
 
 ---
 
-[← Back to Obscuary](#obscuary:index) · [Open Gallery](#obscuary:rui-gallery)
+[← Back to Obscuary](#obscuary:index) ·
+[View All Entries](#obscuary:rui-logs) ·
+[Open Gallery](#obscuary:rui-gallery)

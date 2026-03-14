@@ -1,7 +1,13 @@
-<img class="portrait" src="assets/ghouls/lyca_portrait.png" alt="Lyca Colt portrait">
+![Lyca Colt portrait](assets/ghouls/lyca_portrait.png)
 
-Rumor said Hotarubi’s Captain kept visiting the defunct Ultio prison, so I followed. They’re keeping a half-werewolf ghoul there. Holy shit.
+**Role:**
+**Year:**
+**Birthday:**
+**Contracted Demon:**
+**Artifact:**
 
 ---
 
-[← Back to Obscuary](#obscuary:index) · [Open Gallery](#obscuary:lyca-gallery)
+[← Back to Obscuary](#obscuary:index) ·
+[View All Entries](#obscuary:lyca-logs) ·
+[Open Gallery](#obscuary:lyca-gallery)

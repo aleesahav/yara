@@ -4,7 +4,8 @@
 
 ## 2024
 
-- **07.27** — [First Impressions](#hotarubi:haku-archive-2024-07-27)
+- **07.27** — [First Impressions](#hotarubi:haku-2024-07-27)
+- **08.24** — [Astute](#hotarubi:haku-2024-08-24)
 
 ---
 

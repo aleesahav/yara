@@ -1,7 +1,13 @@
-<img class="portrait" src="assets/ghouls/jiro_portrait.png" alt="Jiro Kirisaki portrait">
+![Jiro Kirisaki portrait](assets/ghouls/jiro_portrait.png)
 
-People call him Frankenstein. They say he was once dead and Isami raised him. He and Isami did my health check—perfect counter to that loud mouth. Deadpan and handsome. Doesn’t talk much: ask, and you shall be told. Takes things literally. Intriguing.
+**Role:**
+**Year:**
+**Birthday:**
+**Contracted Demon:**
+**Artifact:**
 
 ---
 
-[← Back to Mortkranken](#mortkranken:index) · [Open Gallery](#mortkranken:jiro-gallery)
+[← Back to Mortkranken](#mortkranken:index) ·
+[View All Entries](#mortkranken:jiro-logs) ·
+[Open Gallery](#mortkranken:jiro-gallery)

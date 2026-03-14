@@ -2,9 +2,7 @@
 
 ---
 
-## 2024
-
-*No entries yet.*
+- — [First Impressions](#mortkranken:jiro-first-impressions)
 
 ---
 

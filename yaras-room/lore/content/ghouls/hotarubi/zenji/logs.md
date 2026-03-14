@@ -4,7 +4,8 @@
 
 ## 2024
 
-- **08.24** — [First Impressions](#hotarubi:zenji-archive-2024-08-24)
+- **08.24** — [First Impressions](#hotarubi:zenji-2024-08-24)
+- **09.01** — [Ghost](#hotarubi:zenji-2024-09-01)
 
 ---
 
